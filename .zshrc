@@ -263,7 +263,7 @@ alias sbt="sbt -v -mem 2048"
 alias d='docker'
 alias dc='docker-compose'
 alias fuckdocker=' docker run -p 5432:5432 --name hemea-db --restart=always -e POSTGRES_USER=hemea -e POSTGRES_DB=hemea -e POSTGRES_PASSWORD=hemea -d postgres'
-
+alias itdb="docker run -p 5431:5432 --name integration-test-db --restart=always -e POSTGRES_USER=play -e POSTGRES_DB=travauxlib-test -e POSTGRES_PASSWORD=play -d postgres &"
 
 
 

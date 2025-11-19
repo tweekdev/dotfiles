@@ -56,6 +56,15 @@ do_install() {
     echo "✅ Yarn est déjà installé."
   fi
 
+  # install cursor agent
+  if ! command -v cursor &>/dev/null; then
+    echo "📦 Installation de Cursor..."
+    curl https://cursor.com/install -fsS | bash
+    cursor --version
+  else
+    echo "✅ Cursor est déjà installé."
+  fi
+
   # Vérifie si TypeScript est installé
   if ! npm list -g typescript &>/dev/null; then
     echo "📦 Installation de TypeScript..."
@@ -77,9 +86,20 @@ do_install() {
   # Vérifie si Google Cloud SDK est installé
   if ! command -v gcloud &>/dev/null; then
     echo "☁️ Installation de Google Cloud SDK..."
+    brew install awscli
     brew install --cask google-cloud-sdk
   else
     echo "✅ Google Cloud SDK est déjà installé."
+  fi
+
+  # verifier si slack est installe
+  if ! command -v slack &>/dev/null; then
+    if [ ! -d "/Applications/Slack.app" ]; then
+      echo "🚀 Installation de slack..."
+      brew install --cask slack
+    fi
+  else
+    echo "✅ Slack est déjà installé."
   fi
 
   # Vérifie si google-chrome est installé
@@ -90,6 +110,19 @@ do_install() {
     fi
   else
     echo "✅ Google Chrome est déjà installé."
+  fi
+
+  # Vérifie si sdkman est installé
+  if ! command -v sdk &>/dev/null || [ ! -d "$HOME/.sdkman" ]; then
+      echo "📦 Installation de SDKMAN..."
+      curl -s "https://get.sdkman.io" | bash
+      source "$HOME/.sdkman/bin/sdkman-init.sh"
+      sdk version
+      sdk install java 17.0.10-tem
+      sdk install scala 2.13.11 
+      sdk install sbt
+  else
+    echo "✅ SDKMAN est déjà installé."
   fi
 
   # Vérifie si la commande raycast -v fonctionne
@@ -179,13 +212,25 @@ do_installs() {
   nvm install --lts
   nvm use --lts
 
+  echo "🧱 Installation de AWS CLI..."
+  brew install awscli
+
+  echo "📦 Installation de SDKMAN..."
+  curl -s "https://get.sdkman.io" | bash
+  source "$HOME/.sdkman/bin/sdkman-init.sh"
+  sdk version
+  sdk install java 17.0.10-tem
+  sdk install scala 2.13.11
+  sdk install sbt 
+
   echo "📦 Installation de Yarn et TypeScript..."
   npm install -g yarn
   npm install typescript --save-dev
 
+
   echo "🛠️ Installation des outils de développement..."
-  brew install neovim diff-so-fancy tmux fzf bat git zsh eza zoxide gh lazygit coursier/formulas/coursier starship ripgrep git-flow-avh gnu-tar postgresql pigz
-  brew install --cask google-cloud-sdk raycast
+  brew install postgresql pigz gnu-tar ripgrep git-flow-avh neovim diff-so-fancy tmux fzf bat git zsh eza zoxide gh lazygit coursier/formulas/coursier starship ripgrep git-flow-avh gnu-tar postgresql pigz
+  brew install --cask google-cloud-sdk raycast slack
 
   # # installation de skhd et yabai et sketchybar
   # echo "🌀 Installation de skhd, yabai et sketchybar..."
@@ -271,6 +316,8 @@ case $MODE in
   all) do_install; do_links ;;
   *) echo "Usage: $0 {install|links|all}"; exit 1 ;;
 esac
+
+
 
 echo "🎉 Script terminé avec succès."
 
