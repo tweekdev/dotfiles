@@ -278,6 +278,7 @@ alias admin='cd ~/Developer/travauxlib && ./start.sh admin'
 alias pro='cd ~/Developer/travauxlib && ./start.sh pro'
 alias app='cd ~/Developer/travauxlib && ./start.sh app'
 alias shared='cd ~/Developer/travauxlib && ./start.sh shared'
+alias pdf='cd ~/Developer/travauxlib && ./start.sh pdf'
 
 function sesh-sessions() {
   {

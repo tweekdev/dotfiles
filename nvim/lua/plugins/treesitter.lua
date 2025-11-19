@@ -2,67 +2,39 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	build = ":TSUpdate",
 	config = function()
-		require("nvim-treesitter.configs").setup({
-			-- A list of parser names, or "all"
+		local configs = require("nvim-treesitter.configs")
+
+		configs.setup({
 			ensure_installed = {
-				"vimdoc",
-				"json",
-				"javascript",
-				"tsx",
-				"typescript",
 				"c",
 				"lua",
-				"rust",
-				"jsdoc",
-				"bash",
-				"scala",
-				"gitignore",
-				"graphql",
-				"http",
-				"json",
-				"scss",
-				"sql",
 				"vim",
-				"lua",
+				"vimdoc",
+				"query",
+				"elixir",
+				"heex",
+				"javascript",
+				"typescript",
+				"html",
+				"markdown",
+				"markdown_inline",
+				"typescript",
+				"scala",
 			},
-
-			query_linter = {
-				enable = true,
-				use_virtual_text = true,
-				lint_events = { "BufWrite", "CursorHold" },
-			},
-			-- Install parsers synchronously (only applied to `ensure_installed`)
-			sync_install = true,
-
-			-- Automatically install missing parsers when entering buffer
-			-- Recommendation: set to false if you don"t have `tree-sitter` CLI installed locally
 			auto_install = true,
+			sync_install = false,
+			highlight = { enable = true },
+			indent = { enable = true },
 
-			indent = {
+			incremental_selection = {
 				enable = true,
-			},
-
-			highlight = {
-				-- `false` will disable the whole extension
-				enable = true,
-
-				-- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-				-- Set this to `true` if you depend on "syntax" being enabled (like for indentation).
-				-- Using this option may slow down your editor, and you may see some duplicate highlights.
-				-- Instead of true it can also be a list of languages
-				additional_vim_regex_highlighting = { "markdown" },
+				keymaps = {
+					init_selection = "<Enter>", -- set to `false` to disable one of the mappings
+					node_incremental = "<Enter>",
+					scope_incremental = false,
+					node_decremental = "<Backspace>",
+				},
 			},
 		})
-
-		local treesitter_parser_config = require("nvim-treesitter.parsers").get_parser_configs()
-		treesitter_parser_config.templ = {
-			install_info = {
-				url = "https://github.com/vrischmann/tree-sitter-templ.git",
-				files = { "src/parser.c", "src/scanner.c" },
-				branch = "master",
-			},
-		}
-
-		vim.treesitter.language.register("templ", "templ")
 	end,
 }

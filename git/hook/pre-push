@@ -1,0 +1,17 @@
+#!/bin/sh
+echo "🔍 Running typecheck..."
+yarn typecheck
+if [ $? -ne 0 ]; then
+  echo "❌ Typecheck failed. Push aborted."
+  exit 1
+fi
+
+echo "✨ Running lint fix..."
+yarn lint --fix
+if [ $? -ne 0 ]; then
+  echo "❌ Lint failed. Push aborted."
+  exit 1
+fi
+
+echo "✅ All checks passed. Proceeding with push."
+

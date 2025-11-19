@@ -3,6 +3,9 @@ start.sh
 test.sh
 .metals
 .bloop
+travauxlib/coverage-viewer
 project/metals
 project/project
 .bsp
+coverage-viewer
+coverage-viewer.sh

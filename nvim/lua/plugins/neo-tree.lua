@@ -47,30 +47,38 @@ return {
 				end
 			end,
 		})
-		end,
+	end,
 
 	-- Define keymaps
 	keys = {
 		{
 			"<leader>fe",
-			function() _G.neotree.toggle_root() end,
+			function()
+				_G.neotree.toggle_root()
+			end,
 			desc = "Explorer NeoTree (Root Dir)",
 		},
 		{
 			"<leader>fE",
-			function() _G.neotree.toggle_cwd() end,
+			function()
+				_G.neotree.toggle_cwd()
+			end,
 			desc = "Explorer NeoTree (cwd)",
 		},
 		{ "<leader>e", "<leader>fe", desc = "Explorer NeoTree (Root Dir)", remap = true },
 		{ "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)", remap = true },
 		{
 			"<leader>ge",
-			function() _G.neotree.toggle_git() end,
+			function()
+				_G.neotree.toggle_git()
+			end,
 			desc = "Git Explorer",
 		},
 		{
 			"<leader>be",
-			function() _G.neotree.toggle_buffers() end,
+			function()
+				_G.neotree.toggle_buffers()
+			end,
 			desc = "Buffer Explorer",
 		},
 	},
