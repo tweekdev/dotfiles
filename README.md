@@ -4,6 +4,68 @@ Ce dépôt contient un script Bash pour configurer rapidement un environnement d
 
 ---
 
+## 🚀 Première installation sur un nouveau MacBook
+
+### Étape 1 : Installer Git (si nécessaire)
+
+Sur macOS, Git peut être installé de deux façons :
+
+**Option A : Via Xcode Command Line Tools (recommandé)**
+```bash
+xcode-select --install
+```
+
+**Option B : Via Homebrew (si Homebrew est déjà installé)**
+```bash
+brew install git
+```
+
+### Étape 2 : Cloner ce dépôt
+
+```bash
+# Créer le dossier de configuration si nécessaire
+mkdir -p ~/.config
+
+# Cloner le dépôt (remplacez <URL_DU_REPO> par l'URL de votre dépôt)
+cd ~/.config
+git clone <URL_DU_REPO> dotfiles
+
+# Aller dans le dossier
+cd dotfiles
+```
+
+> **Note :** Si vous n'avez pas encore de dépôt Git, vous pouvez créer un nouveau dépôt sur GitHub/GitLab, puis cloner l'URL fournie.
+
+### Étape 3 : Exécuter le script de setup
+
+```bash
+# Rendre le script exécutable
+chmod +x setup.sh
+
+# Installer tous les outils et créer les liens symboliques
+./setup.sh all
+```
+
+Le script va :
+1. Installer Homebrew (si pas déjà installé)
+2. Installer tous les outils nécessaires (Git, Neovim, Node.js, etc.)
+3. Créer les liens symboliques vers vos dotfiles
+
+### Étape 4 : Redémarrer le terminal
+
+Fermez et rouvrez votre terminal pour que tous les changements prennent effet.
+
+### Étape 5 : Configurer Neovim (première fois)
+
+Lors de la première ouverture de Neovim, les plugins seront automatiquement installés via LazyVim :
+```bash
+nvim
+```
+
+Attendez que l'installation des plugins se termine (cela peut prendre quelques minutes).
+
+---
+
 ## 🛠️ Modes disponibles
 
 Le script accepte un argument qui détermine ce qu'il exécute :
