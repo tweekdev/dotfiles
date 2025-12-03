@@ -127,17 +127,17 @@ function current_repository() {
   echo $(git remote -v | cut -d':' -f 2)
 }
 
-#alias fullCheck="yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-#alias fullCheckAdmin="cd ~/Developer/travauxlib/admin && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-#alias fullCheckPro="cd ~/Developer/travauxlib/pro && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-#alias fullCheckApp="cd ~/Developer/travauxlib/app && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-#alias fullCheckShared="cd ~/Developer/travauxlib/shared && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
+alias fullCheck="yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
+alias fullCheckAdmin="cd ~/Developer/travauxlib/admin && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
+alias fullCheckPro="cd ~/Developer/travauxlib/pro && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
+alias fullCheckApp="cd ~/Developer/travauxlib/app && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
+alias fullCheckShared="cd ~/Developer/travauxlib/shared && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
 
-alias fullCheck="cd ~/Developer/travauxlib && ./full-check-all.sh "
-alias fullCheckAdmin="cd ~/Developer/travauxlib && ./full-check-all.sh admin"
-alias fullCheckPro="cd ~/Developer/travauxlib && ./full-check-all.sh pro"
-alias fullCheckApp="cd ~/Developer/travauxlib && ./full-check-all.sh app"
-alias fullCheckShared="cd ~/Developer/travauxlib && ./full-check-all.sh shared"
+#alias fullCheck="cd ~/Developer/travauxlib && ./full-check-all.sh "
+#alias fullCheckAdmin="cd ~/Developer/travauxlib && ./full-check-all.sh admin"
+#alias fullCheckPro="cd ~/Developer/travauxlib && ./full-check-all.sh pro"
+#alias fullCheckApp="cd ~/Developer/travauxlib && ./full-check-all.sh app"
+#alias fullCheckShared="cd ~/Developer/travauxlib && ./full-check-all.sh shared"
 
 alias check="yarn lint --fix && yarn typecheck"
 alias yt="DEBUG_PRINT_LIMIT=50000 yarn test"
