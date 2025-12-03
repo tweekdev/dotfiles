@@ -1,0 +1,15 @@
+# Fichiers de données locaux
+.z
+
+# Fichiers temporaires
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backups
+dotfiles-backup-*
+
+# Logs
+*.log
+
