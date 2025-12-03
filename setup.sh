@@ -102,6 +102,16 @@ do_install() {
     echo "✅ Slack est déjà installé."
   fi
 
+  # verifier si ghostty terminal est installe
+  if ! command -v ghostty &>/dev/null; then
+    if [ ! -d "/Applications/Ghostty.app" ]; then
+      echo "🚀 Installation de ghostty..."
+      brew install --cask ghostty
+    fi
+  else
+    echo "✅ Ghostty est déjà installé."
+  fi
+
   # Vérifie si google-chrome est installé
   if ! command -v google-chrome &>/dev/null; then
     if [ ! -d "/Applications/Google Chrome.app" ]; then
@@ -230,7 +240,7 @@ do_installs() {
 
   echo "🛠️ Installation des outils de développement..."
   brew install postgresql pigz gnu-tar ripgrep git-flow-avh neovim diff-so-fancy tmux fzf bat git zsh eza zoxide gh lazygit coursier/formulas/coursier starship ripgrep git-flow-avh gnu-tar postgresql pigz
-  brew install --cask google-cloud-sdk raycast slack
+  brew install --cask google-cloud-sdk raycast slack ghostty
 
   # # installation de skhd et yabai et sketchybar
   # echo "🌀 Installation de skhd, yabai et sketchybar..."
