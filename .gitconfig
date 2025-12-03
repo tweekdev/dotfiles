@@ -80,12 +80,13 @@
 	kill-branches = "!f() { git branch | awk '!/^*|master/ {print $1 }' | xargs git branch ${1--d};}; f"     
 	pushu = !git push -u origin `git rev-parse --abbrev-ref HEAD`
 	feature-start = !sh -c 'git flow feature start $1 && git flow feature publish $1' -
-
+  
 	feature-checkout = !sh -c 'git flow feature checkout $1' -
 
 	feature-finish = !sh -c 'gh pr merge -s feature/$1 && git flow feature delete -f --noremote $1 && git pull origin develop && git checkout develop' -
 
 	release-start = !sh -c 'git flow release start $1 && git flow release publish $1' -
+  release-delete = !sh -c 'git flow release delete -f $1' -
 
 	release-checkout = !sh -c 'git checkout release/$1 && git pull --rebase origin release/$1' -
 

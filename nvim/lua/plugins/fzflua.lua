@@ -17,6 +17,9 @@ return {
 		live_grep = {
 			cmd = "rg --column --line-number --no-heading --color=always --smart-case --",
 		},
+		lsp = {
+			cwd = vim.uv.cwd(),
+		},
 		previewers = {
 			cat = {
 				cmd = "cat",
