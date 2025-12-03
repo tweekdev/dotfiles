@@ -6,10 +6,35 @@
 *.swo
 *~
 .DS_Store
+*.tmp
+*.bak
 
 # Backups
 dotfiles-backup-*
+*-backup-*
+nvim-backup-*
+nvim-test/
+nvim copy/
+nvim-pld/
 
 # Logs
 *.log
+
+# Fichiers système
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Fichiers d'éditeur
+.vscode/
+.idea/
+*.sublime-*
+
+# Configurations d'éditeurs (sauvegardées localement, pas dans git)
+cursor/User/
+vscode/User/
+
+# Fichiers de lock
+package-lock.json
+yarn.lock
 
