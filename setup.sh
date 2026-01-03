@@ -13,37 +13,37 @@ VERBOSE=false
 # Parse des arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --dry-run)
-      DRY_RUN=true
-      shift
-      ;;
-    --log)
-      LOG_FILE="$2"
-      shift 2
-      ;;
-    --only)
-      SELECTIVE_TOOLS="$2"
-      shift 2
-      ;;
-    --profile)
-      PROFILE="$2"
-      shift 2
-      ;;
-    --verbose|-v)
-      VERBOSE=true
-      shift
-      ;;
-    *)
-      echo "Option inconnue: $1"
-      exit 1
-      ;;
+  --dry-run)
+    DRY_RUN=true
+    shift
+    ;;
+  --log)
+    LOG_FILE="$2"
+    shift 2
+    ;;
+  --only)
+    SELECTIVE_TOOLS="$2"
+    shift 2
+    ;;
+  --profile)
+    PROFILE="$2"
+    shift 2
+    ;;
+  --verbose | -v)
+    VERBOSE=true
+    shift
+    ;;
+  *)
+    echo "Option inconnue: $1"
+    exit 1
+    ;;
   esac
 done
 
 if [ "$DRY_RUN" = false ]; then
-  set -e  # Stop on error
+  set -e # Stop on error
 else
-  set +e  # Ne pas s'arrêter en dry-run
+  set +e # Ne pas s'arrêter en dry-run
 fi
 
 # Fonction pour logger
@@ -52,11 +52,11 @@ log() {
   shift
   local message="$@"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  
+
   if [ -n "$LOG_FILE" ]; then
-    echo "[$timestamp] [$level] $message" >> "$LOG_FILE"
+    echo "[$timestamp] [$level] $message" >>"$LOG_FILE"
   fi
-  
+
   if [ "$level" = "ERROR" ] || [ "$VERBOSE" = true ] || [ "$level" != "DEBUG" ]; then
     echo "$message"
   fi
@@ -105,10 +105,10 @@ check_architecture() {
 save_editor_configs() {
   CONFIG_DIR="$HOME/.config"
   DOTFILES="$CONFIG_DIR/dotfiles"
-  
+
   # Fichiers de configuration essentiels à sauvegarder
   CONFIG_FILES=("settings.json" "keybindings.json" "snippets")
-  
+
   # Cursor - ne sauvegarder que les fichiers essentiels
   if [ -d "$HOME/Library/Application Support/Cursor/User" ]; then
     log "INFO" "💾 Sauvegarde de la configuration Cursor..."
@@ -124,7 +124,7 @@ save_editor_configs() {
       log "DRY-RUN" "Would copy Cursor config files (settings.json, keybindings.json, snippets)"
     fi
   fi
-  
+
   # VSCode - ne sauvegarder que les fichiers essentiels
   if [ -d "$HOME/Library/Application Support/Code/User" ]; then
     log "INFO" "💾 Sauvegarde de la configuration VSCode..."
@@ -150,7 +150,7 @@ do_install() {
   check_architecture
 
   # Sauvegarder les configs Cursor et VSCode si elles existent
-  save_editor_configs
+  # save_editor_configs
 
   # Assurez-vous que le script s'exécute depuis le répertoire home
   cd "$HOME" || exit
@@ -260,19 +260,19 @@ do_install() {
   # Définir les outils selon le profil ou sélection
   if [ -n "$PROFILE" ]; then
     case "$PROFILE" in
-      minimal)
-        TOOLS_TO_INSTALL="git zsh neovim tmux"
-        ;;
-      dev)
-        TOOLS_TO_INSTALL="neovim tmux fzf bat git zsh eza zoxide gh lazygit starship ripgrep git-flow-avh gnu-tar postgresql pigz diff-so-fancy sesh"
-        ;;
-      full)
-        TOOLS_TO_INSTALL="neovim tmux fzf bat git zsh eza zoxide gh lazygit starship ripgrep git-flow-avh gnu-tar postgresql pigz diff-so-fancy sesh"
-        ;;
-      *)
-        log "ERROR" "❌ Profil inconnu: $PROFILE (minimal|dev|full)"
-        exit 1
-        ;;
+    minimal)
+      TOOLS_TO_INSTALL="git zsh neovim tmux"
+      ;;
+    dev)
+      TOOLS_TO_INSTALL="neovim tmux fzf bat git zsh eza zoxide gh lazygit starship ripgrep git-flow-avh gnu-tar postgresql pigz diff-so-fancy sesh"
+      ;;
+    full)
+      TOOLS_TO_INSTALL="neovim tmux fzf bat git zsh eza zoxide gh lazygit starship ripgrep git-flow-avh gnu-tar postgresql pigz diff-so-fancy sesh"
+      ;;
+    *)
+      log "ERROR" "❌ Profil inconnu: $PROFILE (minimal|dev|full)"
+      exit 1
+      ;;
     esac
   elif [ -n "$SELECTIVE_TOOLS" ]; then
     TOOLS_TO_INSTALL="$SELECTIVE_TOOLS"
@@ -285,16 +285,16 @@ do_install() {
   # Parser les outils (peuvent être séparés par des virgules ou des espaces)
   if [[ "$TOOLS_TO_INSTALL" == *","* ]]; then
     # Séparés par des virgules (mode --only)
-    IFS=',' read -ra TOOLS <<< "$TOOLS_TO_INSTALL"
+    IFS=',' read -ra TOOLS <<<"$TOOLS_TO_INSTALL"
   else
     # Séparés par des espaces (profils)
-    read -ra TOOLS <<< "$TOOLS_TO_INSTALL"
+    read -ra TOOLS <<<"$TOOLS_TO_INSTALL"
   fi
-  
+
   for tool in "${TOOLS[@]}"; do
-    tool=$(echo "$tool" | xargs)  # Trim whitespace
+    tool=$(echo "$tool" | xargs) # Trim whitespace
     if [ -z "$tool" ]; then
-      continue  # Skip empty tools
+      continue # Skip empty tools
     fi
     if ! brew list "$tool" &>/dev/null 2>&1; then
       log "INFO" "🔨 Installation de $tool..."
@@ -398,7 +398,7 @@ do_install() {
 
   # Installation des plugins Zsh (après Oh My Zsh)
   echo "🧩 Installation des plugins Zsh..."
-  
+
   # Vérifie si le plugin zsh-syntax-highlighting existe déjà
   PLUGIN_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
   if [ ! -d "$PLUGIN_DIR" ]; then
@@ -444,7 +444,7 @@ do_install() {
   fi
 
   log "INFO" "✅ Installation terminée."
-  
+
   # Générer un rapport si logging activé
   if [ -n "$LOG_FILE" ]; then
     {
@@ -465,7 +465,7 @@ do_install() {
           echo "  ❌ $tool (non installé)"
         fi
       done
-    } >> "$LOG_FILE"
+    } >>"$LOG_FILE"
   fi
 }
 
@@ -487,7 +487,7 @@ do_post_install() {
         echo "# NVM Configuration"
         echo "export NVM_DIR=\"\$HOME/.nvm\""
         echo "[ -s \"\$(brew --prefix nvm)/nvm.sh\" ] && source \"\$(brew --prefix nvm)/nvm.sh\""
-      } >> "$HOME/.zshrc"
+      } >>"$HOME/.zshrc"
     fi
   fi
 
@@ -546,7 +546,7 @@ do_links() {
   echo "🧼 Suppression des anciens dossiers de configuration..."
 
   # Dossiers à remplacer
-  for DIR in nvim kitty sesh cursor vscode ; do
+  for DIR in nvim kitty sesh cursor vscode; do
     TARGET="$CONFIG_DIR/$DIR"
     if [ -e "$TARGET" ] || [ -L "$TARGET" ]; then
       echo "💾 Backup de $TARGET vers $BACKUP_DIR/"
@@ -591,7 +591,7 @@ do_post_install() {
         echo "# NVM Configuration"
         echo "export NVM_DIR=\"\$HOME/.nvm\""
         echo "[ -s \"\$(brew --prefix nvm)/nvm.sh\" ] && source \"\$(brew --prefix nvm)/nvm.sh\""
-      } >> "$HOME/.zshrc"
+      } >>"$HOME/.zshrc"
     fi
   fi
 
@@ -624,41 +624,41 @@ do_post_install() {
 # Nouvelles fonctions pour les modes avancés
 do_update() {
   log "INFO" "🔄 Mise à jour des outils installés..."
-  
+
   if command -v brew &>/dev/null; then
     log "INFO" "🔄 Mise à jour de Homebrew..."
     execute "brew update"
     execute "brew upgrade"
   fi
-  
+
   # Mise à jour des plugins Zsh
   PLUGIN_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
   if [ -d "$PLUGIN_DIR" ]; then
     log "INFO" "🔄 Mise à jour de zsh-syntax-highlighting..."
     (cd "$PLUGIN_DIR" && execute "git pull")
   fi
-  
+
   PLUGIN_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
   if [ -d "$PLUGIN_DIR" ]; then
     log "INFO" "🔄 Mise à jour de zsh-autosuggestions..."
     (cd "$PLUGIN_DIR" && execute "git pull")
   fi
-  
+
   # Mise à jour de TPM
   if [ -d "$HOME/.tmux/plugins/tpm" ]; then
     log "INFO" "🔄 Mise à jour de TPM..."
     (cd "$HOME/.tmux/plugins/tpm" && execute "git pull")
   fi
-  
+
   log "INFO" "✅ Mise à jour terminée."
 }
 
 do_check() {
   log "INFO" "🔍 Vérification de l'état de l'installation..."
-  
+
   local errors=0
   local warnings=0
-  
+
   # Vérifier les outils essentiels
   local tools=("git" "brew" "nvim" "tmux" "zsh")
   for tool in "${tools[@]}"; do
@@ -669,11 +669,11 @@ do_check() {
       ((errors++))
     fi
   done
-  
+
   # Vérifier les symlinks
   CONFIG_DIR="$HOME/.config"
   DOTFILES="$CONFIG_DIR/dotfiles"
-  
+
   local files=(".zshrc" ".tmux.conf" ".gitconfig")
   for file in "${files[@]}"; do
     if [ -L "$HOME/$file" ]; then
@@ -692,7 +692,7 @@ do_check() {
       ((warnings++))
     fi
   done
-  
+
   # Vérifier Git config
   if git config --global user.name &>/dev/null && git config --global user.email &>/dev/null; then
     log "INFO" "✅ Git est configuré"
@@ -700,10 +700,10 @@ do_check() {
     log "WARN" "⚠️  Git n'est pas configuré (user.name ou user.email manquant)"
     ((warnings++))
   fi
-  
+
   echo ""
   log "INFO" "📊 Résumé: $errors erreur(s), $warnings avertissement(s)"
-  
+
   if [ $errors -eq 0 ]; then
     log "INFO" "✅ Tous les checks sont passés !"
     return 0
@@ -715,9 +715,9 @@ do_check() {
 
 do_clean() {
   log "INFO" "🧹 Nettoyage des fichiers temporaires..."
-  
+
   CONFIG_DIR="$HOME/.config"
-  
+
   # Nettoyer les anciens backups (garder les 5 derniers)
   if [ -d "$CONFIG_DIR" ]; then
     local backups=($(ls -td "$CONFIG_DIR"/dotfiles-backup-* 2>/dev/null | tail -n +6))
@@ -731,20 +731,20 @@ do_clean() {
       log "INFO" "✅ Aucun ancien backup à supprimer"
     fi
   fi
-  
+
   # Nettoyer Homebrew
   if command -v brew &>/dev/null; then
     log "INFO" "🧹 Nettoyage de Homebrew..."
     execute "brew cleanup"
   fi
-  
+
   log "INFO" "✅ Nettoyage terminé."
 }
 
 do_rollback() {
   local backup_dir="$1"
   CONFIG_DIR="$HOME/.config"
-  
+
   if [ -z "$backup_dir" ]; then
     log "INFO" "📋 Backups disponibles:"
     local backups=($(ls -td "$CONFIG_DIR"/dotfiles-backup-* 2>/dev/null))
@@ -752,27 +752,27 @@ do_rollback() {
       log "ERROR" "❌ Aucun backup trouvé"
       return 1
     fi
-    
+
     for i in "${!backups[@]}"; do
-      echo "  $((i+1)). ${backups[$i]}"
+      echo "  $((i + 1)). ${backups[$i]}"
     done
-    
+
     read -p "Choisissez un backup (1-${#backups[@]}): " choice
     if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le ${#backups[@]} ]; then
-      backup_dir="${backups[$((choice-1))]}"
+      backup_dir="${backups[$((choice - 1))]}"
     else
       log "ERROR" "❌ Choix invalide"
       return 1
     fi
   fi
-  
+
   if [ ! -d "$backup_dir" ]; then
     log "ERROR" "❌ Backup introuvable: $backup_dir"
     return 1
   fi
-  
+
   log "INFO" "🔄 Restauration depuis $backup_dir..."
-  
+
   # Restaurer les fichiers
   for file in .zshrc .tmux.conf .gitconfig .gitignore_global; do
     if [ -f "$backup_dir/$file" ]; then
@@ -780,7 +780,7 @@ do_rollback() {
       log "INFO" "✅ Restauré: $file"
     fi
   done
-  
+
   # Restaurer les dossiers
   for dir in nvim kitty sesh; do
     if [ -d "$backup_dir/$dir" ]; then
@@ -789,34 +789,34 @@ do_rollback() {
       log "INFO" "✅ Restauré: $dir"
     fi
   done
-  
+
   log "INFO" "✅ Restauration terminée."
 }
 
 do_sync() {
   log "INFO" "🔄 Synchronisation avec le dépôt distant..."
-  
+
   CONFIG_DIR="$HOME/.config"
   DOTFILES="$CONFIG_DIR/dotfiles"
-  
+
   if [ ! -d "$DOTFILES" ]; then
     log "ERROR" "❌ Le dossier $DOTFILES n'existe pas"
     return 1
   fi
-  
+
   cd "$DOTFILES" || return 1
-  
+
   if [ -d ".git" ]; then
     log "INFO" "📥 Pull des dernières modifications..."
     execute "git pull"
-    
+
     log "INFO" "🔄 Mise à jour des symlinks si nécessaire..."
     do_links
   else
     log "ERROR" "❌ $DOTFILES n'est pas un dépôt git"
     return 1
   fi
-  
+
   log "INFO" "✅ Synchronisation terminée."
 }
 
@@ -845,18 +845,26 @@ fi
 
 # Exécution
 case $MODE in
-  install) do_install; do_post_install ;;
-  links) do_links ;;
-  all) do_install; do_links; do_post_install ;;
-  update) do_update ;;
-  check) do_check ;;
-  clean) do_clean ;;
-  rollback) do_rollback "$@" ;;
-  sync) do_sync ;;
-  *) echo "Mode inconnu: $MODE"; exit 1 ;;
+install)
+  do_install
+  do_post_install
+  ;;
+links) do_links ;;
+all)
+  do_install
+  do_links
+  do_post_install
+  ;;
+update) do_update ;;
+check) do_check ;;
+clean) do_clean ;;
+rollback) do_rollback "$@" ;;
+sync) do_sync ;;
+*)
+  echo "Mode inconnu: $MODE"
+  exit 1
+  ;;
 esac
-
-
 
 echo "🎉 Script terminé avec succès."
 
