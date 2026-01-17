@@ -45,6 +45,15 @@ return {
 		vim.api.nvim_create_autocmd("LspAttach", {
 			group = vim.api.nvim_create_augroup("kickstart-lsp-attach", { clear = true }),
 			callback = function(event)
+				local client = vim.lsp.get_client_by_id(event.data.client_id)
+				
+				-- Block vtsls from attaching - we only want ts_ls for TypeScript
+				if client and client.name == "vtsls" then
+					vim.notify("vtsls blocked - using ts_ls instead", vim.log.levels.WARN)
+					vim.lsp.stop_client(client.id, true)
+					return
+				end
+				
 				-- NOTE: Remember that Lua is a real programming language, and as such it is possible
 				-- to define small helper and utility functions so you don't have to repeat yourself.
 				--
@@ -112,6 +121,8 @@ return {
 				--    See `:help CursorHold` for information about when this is executed
 				--
 				-- When you move your cursor, the highlights will be cleared (the second autocommand).
+				-- Note: client was already retrieved above, but we need to get it again here
+				-- in case the earlier check removed it
 				local client = vim.lsp.get_client_by_id(event.data.client_id)
 				if
 					client
@@ -210,6 +221,7 @@ return {
 			tailwindcss = {},
 			emmet_ls = {},
 			cssls = {},
+			-- vtsls is explicitly disabled to avoid conflict with ts_ls for React/TypeScript projects
 			-- clangd = {},
 			-- gopls = {},
 			-- pyright = {},
@@ -220,7 +232,43 @@ return {
 			--    https://github.com/pmizio/typescript-tools.nvim
 			--
 			-- But for many setups, the LSP (`ts_ls`) will work just fine
-			ts_ls = {},
+			ts_ls = {
+				-- Disable formatting to avoid conflicts with prettier/prettierd
+				-- Formatting is handled by conform.nvim with prettierd
+				settings = {
+					typescript = {
+						inlayHints = {
+							parameterNames = { enabled = "all" },
+							variableTypes = { enabled = true },
+							propertyDeclarationTypes = { enabled = true },
+							functionLikeReturnTypes = { enabled = true },
+							enumMemberValues = { enabled = true },
+						},
+					},
+					javascript = {
+						inlayHints = {
+							parameterNames = { enabled = "all" },
+							variableTypes = { enabled = true },
+							propertyDeclarationTypes = { enabled = true },
+							functionLikeReturnTypes = { enabled = true },
+							enumMemberValues = { enabled = true },
+						},
+					},
+				},
+				-- on_attach will be set in the handler to disable formatting
+			},
+			-- ESLint LSP for better linting support in React/TypeScript
+			-- Install via Mason: vscode-eslint-language-server
+			eslint = {
+				settings = {
+					format = false, -- Use prettier/prettierd for formatting instead
+					validate = "on",
+					codeActionOnSave = {
+						enable = true,
+						mode = "all", -- Fix all auto-fixable issues
+					},
+				},
+			},
 			--
 
 			lua_ls = {
@@ -267,10 +315,27 @@ return {
 			handlers = {
 				function(server_name)
 					local server = servers[server_name] or {}
+					
+					-- Disable vtsls to avoid conflict with ts_ls for React/TypeScript projects
+					if server_name == "vtsls" then
+						return -- Don't setup vtsls, we only want ts_ls for TypeScript
+					end
+					
+					-- Disable formatting for ts_ls (use prettier/prettierd instead)
+					if server_name == "ts_ls" then
+						server.on_attach = function(client, bufnr)
+							-- Disable formatting capability for ts_ls
+							client.server_capabilities.documentFormattingProvider = false
+							client.server_capabilities.documentRangeFormattingProvider = false
+						end
+					end
+					
 					-- This handles overriding only values explicitly passed
 					-- by the server configuration above. Useful when disabling
 					-- certain features of an LSP (for example, turning off formatting for ts_ls)
-					server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+					-- Merge capabilities: start with base, then add server-specific overrides
+					local merged_capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+					server.capabilities = merged_capabilities
 					require("lspconfig")[server_name].setup(server)
 				end,
 			},

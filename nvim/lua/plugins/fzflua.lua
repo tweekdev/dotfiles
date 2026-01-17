@@ -187,7 +187,7 @@ return {
 			desc = "[F]ind [I]mplementations",
 		},
 		{
-			"<leader>fr",
+			"<leader>fR",
 			function()
 				require("fzf-lua").resume()
 			end,
@@ -219,7 +219,7 @@ return {
 			function()
 				require("fzf-lua").lsp_references()
 			end,
-			desc = "Find references",
+			desc = "[F]ind [R]eferences",
 		},
 	},
 }
