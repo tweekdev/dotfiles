@@ -22,21 +22,38 @@ RUN_LINT="true"
 RUN_TYPECHECK="true"
 SPECIFIC_APPS=()
 
+# Couleurs pour l'affichage
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
 # Affichage de l'aide
 function show_help {
-  echo "Usage: $0 [options] [app1 app2 ...]"
-  echo "Options:"
-  echo "  --verbose         Active le mode verbeux (affiche les sorties en temps réel)"
-  echo "  --no-tests        Ignore les tests unitaires"
-  echo "  --no-lint         Ignore les vérifications de lint"
-  echo "  --no-typecheck    Ignore les vérifications de types"
-  echo "  --only-lint       Exécute uniquement les vérifications de lint"
-  echo "  --only-typecheck  Exécute uniquement les vérifications de types"
-  echo "  --only-tests      Exécute uniquement les tests unitaires"
-  echo "  --help            Affiche cette aide"
+  echo -e "${BOLD}Usage:${NC} $0 [options] [app1 app2 ...]"
   echo ""
-  echo "Si des noms d'applications sont spécifiés après les options, seules ces applications seront vérifiées."
-  echo "Applications disponibles: ${APPS[*]}"
+  echo -e "${BOLD}Description:${NC}"
+  echo "  Lance les tests, lint et typecheck sur les applications du projet."
+  echo ""
+  echo -e "${BOLD}Options:${NC}"
+  echo -e "  ${GREEN}--verbose${NC}         Affiche les sorties en temps réel"
+  echo -e "  ${GREEN}--no-tests${NC}        Désactive les tests unitaires"
+  echo -e "  ${GREEN}--no-lint${NC}         Désactive le lint"
+  echo -e "  ${GREEN}--no-typecheck${NC}    Désactive le typecheck"
+  echo -e "  ${GREEN}--only-lint${NC}       Lance uniquement le lint"
+  echo -e "  ${GREEN}--only-typecheck${NC}  Lance uniquement le typecheck"
+  echo -e "  ${GREEN}--only-tests${NC}      Lance uniquement les tests"
+  echo -e "  ${GREEN}--help${NC}            Affiche cette aide"
+  echo ""
+  echo -e "${BOLD}Applications disponibles:${NC} ${CYAN}${APPS[*]}${NC}"
+  echo ""
+  echo -e "${BOLD}Exemples:${NC}"
+  echo -e "  ${YELLOW}$0${NC}                        # Tout vérifier sur toutes les apps"
+  echo -e "  ${YELLOW}$0 pro admin${NC}              # Vérifier uniquement pro et admin"
+  echo -e "  ${YELLOW}$0 --only-lint${NC}            # Lint uniquement"
+  echo -e "  ${YELLOW}$0 --no-tests shared${NC}      # Lint + typecheck sur shared"
+  echo -e "  ${YELLOW}$0 --verbose pro${NC}          # Vérifier pro avec sortie détaillée"
   exit 0
 }
 
@@ -96,37 +113,84 @@ done
 if [[ ${#POSITIONAL_ARGS[@]} -gt 0 ]]; then
   SPECIFIC_APPS=("${POSITIONAL_ARGS[@]}")
   APPS=("${SPECIFIC_APPS[@]}")
-  echo "Vérification uniquement pour les applications: ${APPS[*]}"
 fi
 
-# Affichage des options sélectionnées
-echo "🔍 Mode $([ "$VERBOSE" == "true" ] && echo "VERBOSE" || echo "NON-VERBOSE") activé"
-[ "$RUN_TESTS" == "false" ] && echo "⏭️ Tests IGNORÉS"
-[ "$RUN_LINT" == "false" ] && echo "⏭️ Lint IGNORÉ"
-[ "$RUN_TYPECHECK" == "false" ] && echo "⏭️ Typecheck IGNORÉ"
+# Construire la liste des checks actifs
+ACTIVE_CHECKS=()
+[[ "$RUN_TESTS" == "true" ]] && ACTIVE_CHECKS+=("tests")
+[[ "$RUN_LINT" == "true" ]] && ACTIVE_CHECKS+=("lint")
+[[ "$RUN_TYPECHECK" == "true" ]] && ACTIVE_CHECKS+=("typecheck")
+
+# Affichage du résumé de ce qui va être exécuté
+echo ""
+echo "📋 Configuration :"
+echo "   Apps    : ${APPS[*]}"
+echo "   Checks  : ${ACTIVE_CHECKS[*]}"
+[[ "$VERBOSE" == "true" ]] && echo "   Mode    : verbose"
+echo ""
+
+# Fonction pour extraire et formater la couverture
+function extract_coverage {
+  local output="$1"
+  local app="$2"
+  
+  # Recherche de la couverture dans le format exact de Jest
+  local coverage_raw=$(echo "$output" | grep -E "^All files" | head -1 || echo "")
+  
+  if [[ -z "$coverage_raw" ]]; then
+    return
+  fi
+  
+  local coverage=""
+  # Extraire les pourcentages de la ligne (pattern: | XX.XX | XX.XX | XX.XX | XX.XX |)
+  local stmts=$(echo "$coverage_raw" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -1 | tr -d '|' | tr -d ' ')
+  local branch=$(echo "$coverage_raw" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -2 | tail -1 | tr -d '|' | tr -d ' ')
+  local funcs=$(echo "$coverage_raw" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -3 | tail -1 | tr -d '|' | tr -d ' ')
+  local lines=$(echo "$coverage_raw" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -4 | tail -1 | tr -d '|' | tr -d ' ')
+  
+  if [[ -n "$stmts" && -n "$branch" && -n "$funcs" && -n "$lines" ]]; then
+    coverage="Stmts: $stmts%, Branch: $branch%, Funcs: $funcs%, Lines: $lines%"
+  else
+    # Méthode alternative d'extraction
+    stmts=$(echo "$coverage_raw" | awk -F '|' '{print $2}' | tr -d ' ')
+    branch=$(echo "$coverage_raw" | awk -F '|' '{print $3}' | tr -d ' ')
+    funcs=$(echo "$coverage_raw" | awk -F '|' '{print $4}' | tr -d ' ')
+    lines=$(echo "$coverage_raw" | awk -F '|' '{print $5}' | tr -d ' ')
+    
+    if [[ -n "$stmts" && -n "$branch" && -n "$funcs" && -n "$lines" ]]; then
+      coverage="Stmts: $stmts%, Branch: $branch%, Funcs: $funcs%, Lines: $lines%"
+    else
+      coverage=$(echo "$coverage_raw" | tr -s ' ' | tr -s '|' | sed 's/All files/All files:/')
+    fi
+  fi
+  
+  COVERAGE_SUMMARY+="  $app : $coverage"$'\n'
+}
 
 # Fonction pour afficher le résumé final
 function print_summary {
+  local total=$((SUCCESS_COUNT + FAILURE_COUNT))
+  
   echo -e "\n============================="
-  echo -e "📊 Résumé des checks :"
+  echo -e "📊 Résumé : $SUCCESS_COUNT/$total apps OK"
   echo -e "============================="
   printf "%b" "$RESULTS"
   
-  echo -e "\n============================="
-  echo -e "🔍 Détails sur les tests par application :"
-  echo -e "============================="
-  echo -e "✅ Tests réussis total : $SUCCESS_COUNT / $((SUCCESS_COUNT + FAILURE_COUNT))"
-  printf "%b" "$TESTS_SUMMARY"
+  # Afficher les détails des tests uniquement si les tests ont été lancés
+  if [[ "$RUN_TESTS" == "true" && -n "$TESTS_SUMMARY" ]]; then
+    echo -e "\n📝 Détails des tests :"
+    printf "%b" "$TESTS_SUMMARY"
+  fi
   
-  echo -e "\n============================="
-  echo -e "💼 Couverture par application :"
-  echo -e "============================="
-  printf "%b" "$COVERAGE_SUMMARY"
+  # Afficher la couverture uniquement si les tests ont été lancés et qu'il y a des données
+  if [[ "$RUN_TESTS" == "true" && -n "$COVERAGE_SUMMARY" ]]; then
+    echo -e "\n📈 Couverture :"
+    printf "%b" "$COVERAGE_SUMMARY"
+  fi
   
-  if [[ -n "$ERRORS_SUMMARY" ]]; then
-    echo -e "\n============================="
-    echo -e "❌ Erreurs par application :"
-    echo -e "============================="
+  # Afficher les erreurs uniquement s'il y en a
+  if [[ -n "$ERRORS_SUMMARY" && "$ERRORS_SUMMARY" != "Aucune erreur détectée" ]]; then
+    echo -e "\n❌ Erreurs :"
     printf "%b" "$ERRORS_SUMMARY"
   fi
 }
@@ -156,8 +220,11 @@ function verbose_output {
   # Patterns pour capturer différents types d'erreurs
   
   # 1. Pattern pour les lignes complètes contenant des chemins absolus vers des fichiers
-  # Format exact observé dans le projet: /Users/tweekdev/Developer/travauxlib/pro/src/components/StatusTagsDevis.tsx
-  local full_path_pattern="/Users/tweekdev/Developer/travauxlib/[a-zA-Z0-9/_\.-]+\.[jt]sx?"
+  # Utilise le répertoire courant du script pour être portable
+  local workspace_dir
+  workspace_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+  local escaped_workspace_dir=$(echo "$workspace_dir" | sed 's/[\/&]/\\&/g')
+  local full_path_pattern="${escaped_workspace_dir}/[a-zA-Z0-9/_\.-]+\.[jt]sx?"
   
   # 2. Pattern ESLint: ligne avec numéro et erreur (ex: 39:21 error 'props' is defined...)
   local eslint_line_pattern="[0-9]+:[0-9]+\s+error"
@@ -193,7 +260,7 @@ function verbose_output {
   local error_details=$(echo "$output" | grep -E "^\s+at Object\." | head -10)
   
   # Combiner les résultats
-  combined_errors=""
+  local combined_errors=""
   
   # Ajouter chaque type d'erreur trouvé à la liste combinée
   if [[ -n "$file_errors" ]]; then
@@ -322,8 +389,10 @@ function cleanup_and_exit {
   # Si la fonction est appelée normalement à la fin du script, ne pas quitter
   if [[ ${FUNCNAME[1]} == "exit_trap" ]]; then
     if [[ $HAS_ERROR -eq 1 ]]; then
+      echo -e "\n🔴 Terminé avec des erreurs"
       exit 1
     else
+      echo -e "\n🟢 Tous les checks sont passés"
       exit 0
     fi
   fi
@@ -339,8 +408,8 @@ trap exit_trap EXIT INT TERM
 
 # Exécution des checks
 for APP in "${APPS[@]}"; do
-  echo -e "\n🚀 Checking $APP..."
-  pushd "$APP" > /dev/null || { echo "❌ Impossible d'accéder au répertoire $APP"; continue; }
+  echo -e "🔄 $APP..."
+  pushd "$APP" > /dev/null || { echo "❌ $APP: Dossier introuvable"; RESULTS+="$APP: ❌ Dossier introuvable"$'\n'; FAILURE_COUNT=$((FAILURE_COUNT + 1)); HAS_ERROR=1; continue; }
 
   # Construction de la commande en fonction des options
   CMD=""
@@ -374,8 +443,8 @@ for APP in "${APPS[@]}"; do
   
   # Si aucune commande n'est configurée, on saute cette application mais on l'enregistre comme succès
   if [[ -z "$CMD" ]]; then
-    echo "⏭️ Tous les checks sont ignorés pour $APP"
-    RESULTS+="$APP: ✅ Ignoré"$'\n'
+    echo "⏭️ $APP: Aucun check configuré"
+    RESULTS+="$APP: ⏭️ Ignoré"$'\n'
     SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
     popd > /dev/null
     continue
@@ -383,14 +452,10 @@ for APP in "${APPS[@]}"; do
 
   if [[ "$VERBOSE" == "true" ]]; then
     echo -e "\n🔍 Exécution de la commande : $CMD"
-    # En mode verbose, exécute la commande mais capture le code de sortie
-    # en utilisant set +e pour empêcher le script de s'arrêter en cas d'erreur
+    # En mode verbose, exécute et capture la sortie en même temps (tee)
     set +e
-    bash -c "$CMD"
-    EXIT_CODE=$?
-    set -e
-    # Garder une trace de la sortie pour l'affichage du résumé
-    OUTPUT="Sortie déjà affichée en temps réel"
+    OUTPUT=$(bash -c "$CMD" 2>&1 | tee /dev/tty)
+    EXIT_CODE=${PIPESTATUS[0]}
   else
     # En mode non-verbose, capture la sortie dans une variable
     # Désactiver temporairement l'arrêt sur erreur
@@ -398,144 +463,59 @@ for APP in "${APPS[@]}"; do
     OUTPUT=$(bash -c "$CMD" 2>&1)
     EXIT_CODE=$?
     # Ne pas réactiver l'arrêt sur erreur ici car nous voulons continuer même en cas d'erreur
-    echo -e "\n🕐 $APP: Commande terminée avec code $EXIT_CODE"
+    if [[ $EXIT_CODE -eq 0 ]]; then
+      echo -e "✅ $APP: OK"
+    else
+      echo -e "❌ $APP: Échec"
+    fi
   fi
 
-  # Extraire le nombre de tests
+  # Extraire le nombre de tests (uniquement si les tests ont été lancés)
   TEST_STATS=""
   TEST_SUITES=""
-  if [[ "$APP" != "pdf-service" ]]; then
-    # Capturer le format exact des tests de Jest
+  if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" ]]; then
     TEST_SUITES=$(echo "$OUTPUT" | grep -E "^Test Suites:" | head -1 || echo "")
     TEST_STATS=$(echo "$OUTPUT" | grep -E "^Tests:" | head -1 || echo "")
     
-    # Si aucun résultat n'est trouvé, essayer un pattern plus général
+    # Pattern plus général si rien trouvé
     if [[ -z "$TEST_SUITES" && -z "$TEST_STATS" ]]; then
       TEST_SUITES=$(echo "$OUTPUT" | grep -E "Test Suites:" | head -1 || echo "")
       TEST_STATS=$(echo "$OUTPUT" | grep -E "Tests:" | head -1 || echo "")
     fi
-    
-    # Si toujours rien, indiquer qu'aucun test n'a été détecté
-    if [[ -z "$TEST_STATS" ]]; then
-      TEST_STATS="Pas de tests détectés"
-    fi
   fi
   
   if [[ $EXIT_CODE -eq 0 ]]; then
-    RESULTS+="$APP: ✅ Success"$'\n'
+    RESULTS+="  ✅ $APP"$'\n'
     SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-    
-    # Collecte des informations pour toutes les applications (pas seulement en cas de succès)
-    if [[ "$APP" != "pdf-service" ]]; then
-      # Recherche de la couverture dans le format exact de Jest
-      COVERAGE_RAW=$(echo "$OUTPUT" | grep -E "^All files" | head -1 || echo "Pas de couverture détectée")
-      
-      # Formater la couverture pour un affichage plus propre
-      if [[ "$COVERAGE_RAW" != "Pas de couverture détectée" ]]; then
-        # Extraire les pourcentages de la ligne (pattern: | XX.XX | XX.XX | XX.XX | XX.XX |)
-        STMTS=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -1 | tr -d '|' | tr -d ' ')
-        BRANCH=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -2 | tail -1 | tr -d '|' | tr -d ' ')
-        FUNCS=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -3 | tail -1 | tr -d '|' | tr -d ' ')
-        LINES=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -4 | tail -1 | tr -d '|' | tr -d ' ')
-        
-        # Si l'extraction a fonctionné, afficher un format propre
-        if [[ -n "$STMTS" && -n "$BRANCH" && -n "$FUNCS" && -n "$LINES" ]]; then
-          COVERAGE="Stmts: $STMTS%, Branch: $BRANCH%, Funcs: $FUNCS%, Lines: $LINES%"
-        else
-          # Méthode alternative d'extraction
-          STMTS=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $2}' | tr -d ' ')
-          BRANCH=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $3}' | tr -d ' ')
-          FUNCS=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $4}' | tr -d ' ')
-          LINES=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $5}' | tr -d ' ')
-          
-          if [[ -n "$STMTS" && -n "$BRANCH" && -n "$FUNCS" && -n "$LINES" ]]; then
-            COVERAGE="Stmts: $STMTS%, Branch: $BRANCH%, Funcs: $FUNCS%, Lines: $LINES%"
-          else
-            # Si tout échoue, simplement retirer les espaces excessifs
-            COVERAGE=$(echo "$COVERAGE_RAW" | tr -s ' ' | tr -s '|' | sed 's/All files/All files:/')
-          fi
-        fi
-      else
-        COVERAGE="$COVERAGE_RAW"
-      fi
-      
-      COVERAGE_SUMMARY+="$APP : $COVERAGE"$'\n'
-      
-      # Ajouter les stats de tests au résumé
-      if [[ -n "$TEST_STATS" ]]; then
-        TESTS_SUMMARY+="$APP : $TEST_STATS"$'\n'
-        if [[ -n "$TEST_SUITES" ]]; then
-          TESTS_SUMMARY+="       $TEST_SUITES"$'\n'
-        fi
-      fi
-    fi
   else
-    RESULTS+="$APP: ❌ Failed"$'\n'
+    RESULTS+="  ❌ $APP"$'\n'
     FAILURE_COUNT=$((FAILURE_COUNT + 1))
     HAS_ERROR=1
     
-    # Ajouter quand même les stats de tests au résumé même en cas d'échec
-    if [[ "$APP" != "pdf-service" && -n "$TEST_STATS" ]]; then
-      TESTS_SUMMARY+="$APP : $TEST_STATS"$'\n'
-      if [[ -n "$TEST_SUITES" ]]; then
-        TESTS_SUMMARY+="       $TEST_SUITES"$'\n'
-      fi
-    fi
-    
-    # Afficher les erreurs en mode verbose et les enregistrer pour le résumé
-    verbose_output "$APP" "$OUTPUT"
-    
-    # Extraire des informations de couverture même en cas d'échec
-    if [[ "$APP" != "pdf-service" ]]; then
-      # Recherche de la couverture dans le format exact de Jest
-      COVERAGE_RAW=$(echo "$OUTPUT" | grep -E "^All files" | head -1 || echo "Pas de couverture détectée")
-      
-      # Formater la couverture pour un affichage plus propre
-      if [[ "$COVERAGE_RAW" != "Pas de couverture détectée" ]]; then
-        # Extraire les pourcentages de la ligne (pattern: | XX.XX | XX.XX | XX.XX | XX.XX |)
-        STMTS=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -1 | tr -d '|' | tr -d ' ')
-        BRANCH=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -2 | tail -1 | tr -d '|' | tr -d ' ')
-        FUNCS=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -3 | tail -1 | tr -d '|' | tr -d ' ')
-        LINES=$(echo "$COVERAGE_RAW" | grep -o -E "\|\s+[0-9]+\.[0-9]+\s+\|" | head -4 | tail -1 | tr -d '|' | tr -d ' ')
-        
-        # Si l'extraction a fonctionné, afficher un format propre
-        if [[ -n "$STMTS" && -n "$BRANCH" && -n "$FUNCS" && -n "$LINES" ]]; then
-          COVERAGE="Stmts: $STMTS%, Branch: $BRANCH%, Funcs: $FUNCS%, Lines: $LINES%"
-        else
-          # Méthode alternative d'extraction
-          STMTS=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $2}' | tr -d ' ')
-          BRANCH=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $3}' | tr -d ' ')
-          FUNCS=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $4}' | tr -d ' ')
-          LINES=$(echo "$COVERAGE_RAW" | awk -F '|' '{print $5}' | tr -d ' ')
-          
-          if [[ -n "$STMTS" && -n "$BRANCH" && -n "$FUNCS" && -n "$LINES" ]]; then
-            COVERAGE="Stmts: $STMTS%, Branch: $BRANCH%, Funcs: $FUNCS%, Lines: $LINES%"
-          else
-            # Si tout échoue, simplement retirer les espaces excessifs
-            COVERAGE=$(echo "$COVERAGE_RAW" | tr -s ' ' | tr -s '|' | sed 's/All files/All files:/')
-          fi
-        fi
-        
-        COVERAGE_SUMMARY+="$APP : $COVERAGE"$'\n'
-      fi
-    fi
-    
-    # Afficher les erreurs en mode verbose et les enregistrer pour le résumé
+    # Enregistrer les erreurs pour le résumé
     verbose_output "$APP" "$OUTPUT"
   fi
+  
+  # Collecter stats de tests et couverture (si tests lancés et pas pdf-service)
+  if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" ]]; then
+    if [[ -n "$TEST_STATS" ]]; then
+      TESTS_SUMMARY+="  $APP : $TEST_STATS"$'\n'
+      [[ -n "$TEST_SUITES" ]] && TESTS_SUMMARY+="         $TEST_SUITES"$'\n'
+    fi
+    extract_coverage "$OUTPUT" "$APP"
+  fi
 
-  popd > /dev/null || { echo "❌ Retour impossible au dossier parent depuis $APP"; continue; }
+  popd > /dev/null || { echo "❌ Erreur de navigation"; continue; }
 done
 
 # Garder l'arrêt sur erreur désactivé pour que le script continue même en cas d'erreur
 # set -e
 
-# S'assurer qu'il y a toujours un résumé à afficher, même si aucune application n'a été vérifiée
+# Vérifier qu'au moins une application a été vérifiée
 if [[ $((SUCCESS_COUNT + FAILURE_COUNT)) -eq 0 ]]; then
-  echo -e "\n⚠️ Aucune application n'a été vérifiée. Vérifiez vos options ou le nom des applications spécifiées."
+  echo -e "\n⚠️ Aucune app vérifiée. Vérifiez le nom des apps spécifiées."
   HAS_ERROR=1
 fi
 
 # Indiquer que l'exécution normale est terminée
-# Le résumé sera affiché parsuccess_count=0
-faisuccess_count + failhas_eexitvia le trap EXIT
+# Le résumé sera affiché via le trap EXIT
