@@ -1,11 +1,10 @@
-full-check-all.sh
-start.sh
-test.sh
+travauxlib/full-check-all.sh
+travauxlib/start.sh
+travauxlib/test.sh
 .metals
 .bloop
 travauxlib/coverage-viewer
 project/metals
 project/project
 .bsp
-coverage-viewer
-coverage-viewer.sh
+travauxlib/coverage-viewer.sh
