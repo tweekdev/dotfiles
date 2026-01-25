@@ -9,9 +9,23 @@
 
 set -e
 
-# Mode dry-run
+# Mode dry-run ou check
 DRY_RUN=false
+CHECK_MODE=false
 [[ "$1" == "--dry-run" || "$1" == "-n" ]] && DRY_RUN=true
+[[ "$1" == "--check" || "$1" == "-c" ]] && CHECK_MODE=true
+
+# Afficher l'aide
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  echo "Usage: ./macos-defaults.sh [option]"
+  echo ""
+  echo "Options:"
+  echo "  (aucune)     Appliquer les préférences"
+  echo "  --dry-run    Simuler sans appliquer"
+  echo "  --check      Afficher les valeurs actuelles"
+  echo "  --help       Afficher cette aide"
+  exit 0
+fi
 
 # Couleurs
 RED='\033[0;31m'
@@ -29,6 +43,66 @@ run() {
     "$@"
   fi
 }
+
+# Fonction pour lire une valeur defaults
+read_default() {
+  local domain="$1"
+  local key="$2"
+  local value
+  value=$(defaults read "$domain" "$key" 2>/dev/null) || value="${RED}non défini${NC}"
+  echo -e "  $key = ${GREEN}$value${NC}"
+}
+
+# Mode check : afficher les valeurs actuelles
+if $CHECK_MODE; then
+  echo -e "${BLUE}📋 Valeurs actuelles des préférences macOS${NC}"
+  echo ""
+  
+  echo -e "${YELLOW}[Général]${NC}"
+  read_default NSGlobalDomain NSNavPanelExpandedStateForSaveMode
+  read_default NSGlobalDomain NSDocumentSaveNewDocumentsToCloud
+  read_default com.apple.LaunchServices LSQuarantine
+  
+  echo -e "\n${YELLOW}[Clavier]${NC}"
+  read_default NSGlobalDomain KeyRepeat
+  read_default NSGlobalDomain InitialKeyRepeat
+  read_default NSGlobalDomain NSAutomaticSpellingCorrectionEnabled
+  read_default NSGlobalDomain ApplePressAndHoldEnabled
+  read_default NSGlobalDomain AppleKeyboardUIMode
+  
+  echo -e "\n${YELLOW}[Trackpad]${NC}"
+  read_default com.apple.AppleMultitouchTrackpad Clicking
+  read_default com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag
+  
+  echo -e "\n${YELLOW}[Finder]${NC}"
+  read_default com.apple.finder AppleShowAllFiles
+  read_default NSGlobalDomain AppleShowAllExtensions
+  read_default com.apple.finder ShowPathbar
+  read_default com.apple.finder ShowStatusBar
+  read_default com.apple.finder FXPreferredViewStyle
+  read_default com.apple.finder _FXSortFoldersFirst
+  read_default com.apple.desktopservices DSDontWriteNetworkStores
+  
+  echo -e "\n${YELLOW}[Dock]${NC}"
+  read_default com.apple.dock autohide
+  read_default com.apple.dock autohide-delay
+  read_default com.apple.dock autohide-time-modifier
+  read_default com.apple.dock tilesize
+  read_default com.apple.dock magnification
+  read_default com.apple.dock show-recents
+  read_default com.apple.dock mru-spaces
+  
+  echo -e "\n${YELLOW}[Screenshots]${NC}"
+  read_default com.apple.screencapture location
+  read_default com.apple.screencapture type
+  read_default com.apple.screencapture disable-shadow
+  
+  echo -e "\n${YELLOW}[Time Machine]${NC}"
+  read_default com.apple.TimeMachine DoNotOfferNewDisksForBackup
+  
+  echo ""
+  exit 0
+fi
 
 echo -e "${BLUE}⚙️  Configuration des préférences macOS...${NC}"
 $DRY_RUN && echo -e "  ${PURPLE}Mode simulation activé${NC}"

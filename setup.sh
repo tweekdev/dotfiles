@@ -389,6 +389,21 @@ do_links() {
   else
     log "SKIP" "Pas de dossier wallpapers"
   fi
+
+  # Dossier Developer
+  echo ""
+  echo -e "  ${BOLD}Developer :${NC}"
+  DEVELOPER_DIR="$HOME/Developer"
+  if [ "$DRY_RUN" = true ]; then
+    log "DRY" "mkdir ~/Developer"
+  else
+    if [ -d "$DEVELOPER_DIR" ]; then
+      log "SKIP" "~/Developer existe déjà"
+    else
+      mkdir -p "$DEVELOPER_DIR"
+      log "SUCCESS" "~/Developer créé"
+    fi
+  fi
 }
 
 do_post_install() {
