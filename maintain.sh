@@ -33,6 +33,7 @@ fi
 echo "🔍 Vérification des symlinks..."
 errors=0
 
+# Fichiers
 files=(".zshrc" ".tmux.conf" ".gitconfig" ".gitignore_global")
 for file in "${files[@]}"; do
   if [ -L "$HOME/$file" ]; then
@@ -51,6 +52,28 @@ for file in "${files[@]}"; do
     ((errors++))
   fi
 done
+
+# Dossiers
+dirs=("nvim" "sesh" "cursor" "vscode" "git")
+for dir in "${dirs[@]}"; do
+  if [ -L "$CONFIG_DIR/$dir" ]; then
+    echo "  ✅ $dir/"
+  elif [ -d "$CONFIG_DIR/$dir" ]; then
+    echo "  ⚠️  $dir/ existe mais n'est pas un symlink"
+    ((errors++))
+  else
+    echo "  ⚠️  $dir/ n'existe pas"
+    ((errors++))
+  fi
+done
+
+# starship.toml
+if [ -L "$CONFIG_DIR/starship.toml" ]; then
+  echo "  ✅ starship.toml"
+else
+  echo "  ⚠️  starship.toml n'est pas un symlink"
+  ((errors++))
+fi
 
 if [ $errors -eq 0 ]; then
   echo "✅ Tous les symlinks sont corrects"

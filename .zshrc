@@ -1,5 +1,9 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+# ============================================
+# Homebrew (must be FIRST for Apple Silicon)
+# ============================================
+if [[ -f "/opt/homebrew/bin/brew" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -338,9 +342,6 @@ tsd() {
 # PATH exports
 # ============================================
 PATH="/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH"
-
-# Added by Windsurf
-export PATH="/Users/tweekdev/.codeium/windsurf/bin:$PATH"
 
 # ============================================
 # Starship prompt (keep near end)

@@ -13,7 +13,7 @@ Cherche "Terminal" dans Spotlight (Cmd + Espace) et ouvre-le.
 ### Étape 2 : Copie-colle cette commande
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/tweekdev/dotfiles/master/bootstrap.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/tweekdev/dotfiles/master/install.sh)"
 ```
 
 ### Étape 3 : Attends
@@ -119,6 +119,7 @@ brew bundle --file=~/.config/dotfiles/Brewfile
 ~/.config/sesh/       → dotfiles/sesh/
 ~/.config/git/        → dotfiles/git/
 ~/.config/starship.toml → dotfiles/starship.toml
+~/Pictures/Wallpapers/  ← dotfiles/wallpapers/ (copie)
 ```
 
 ---

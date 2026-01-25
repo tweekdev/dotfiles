@@ -371,6 +371,24 @@ do_links() {
     ln -s "$DOTFILES/starship.toml" "$TARGET"
     log "SUCCESS" "starship.toml"
   fi
+
+  # Wallpapers
+  echo ""
+  echo -e "  ${BOLD}Wallpapers :${NC}"
+  WALLPAPERS_SRC="$DOTFILES/wallpapers"
+  WALLPAPERS_DST="$HOME/Pictures/Wallpapers"
+  if [ -d "$WALLPAPERS_SRC" ]; then
+    if [ "$DRY_RUN" = true ]; then
+      log "DRY" "wallpapers/ → ~/Pictures/Wallpapers/"
+    else
+      mkdir -p "$WALLPAPERS_DST"
+      cp -r "$WALLPAPERS_SRC/"* "$WALLPAPERS_DST/" 2>/dev/null || true
+      count=$(ls -1 "$WALLPAPERS_DST" 2>/dev/null | wc -l | tr -d ' ')
+      log "SUCCESS" "$count wallpapers copiés"
+    fi
+  else
+    log "SKIP" "Pas de dossier wallpapers"
+  fi
 }
 
 do_post_install() {
