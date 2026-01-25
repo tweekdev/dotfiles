@@ -13,7 +13,7 @@
 tap "coursier/formulas"
 tap "felixkratz/formulae"
 tap "koekeishiya/formulae"
-tap "homebrew/cask-fonts"
+# Note: homebrew/cask-fonts est déprécié, les fonts sont maintenant dans le repo principal
 
 # -----------------
 # CLI Tools - Essential
@@ -87,7 +87,7 @@ cask "sf-symbols"
 # Apps to install manually (not managed by brew)
 # Uncomment on a fresh Mac if you want brew to install them
 # -----------------
-cask "docker"
+cask "docker-desktop"
 cask "slack"
 cask "google-chrome"
 
