@@ -1,0 +1,65 @@
+# ============================================
+# Ghostty Configuration
+# ============================================
+
+# Font
+font-family = "JetBrainsMono Nerd Font"
+font-size = 14
+font-thicken = true
+
+# Window
+window-padding-x = 10
+window-padding-y = 10
+window-decoration = true
+macos-titlebar-style = tabs
+
+# Theme (Kanagawa-inspired)
+background = #1f1f28
+foreground = #dcd7ba
+cursor-color = #c8c093
+selection-background = #2d4f67
+selection-foreground = #c8c093
+
+# Colors (Kanagawa palette)
+palette = 0=#090618
+palette = 1=#c34043
+palette = 2=#76946a
+palette = 3=#c0a36e
+palette = 4=#7e9cd8
+palette = 5=#957fb8
+palette = 6=#6a9589
+palette = 7=#c8c093
+palette = 8=#727169
+palette = 9=#e82424
+palette = 10=#98bb6c
+palette = 11=#e6c384
+palette = 12=#7fb4ca
+palette = 13=#938aa9
+palette = 14=#7aa89f
+palette = 15=#dcd7ba
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false
+
+# Mouse
+mouse-hide-while-typing = true
+copy-on-select = clipboard
+
+# Shell integration
+shell-integration = zsh
+shell-integration-features = cursor,sudo,title
+
+# Scrollback
+scrollback-limit = 10000
+
+# Misc
+confirm-close-surface = false
+quit-after-last-window-closed = true
+
+# Keybindings (macOS style)
+keybind = super+t=new_tab
+keybind = super+w=close_surface
+keybind = super+shift+left_bracket=previous_tab
+keybind = super+shift+right_bracket=next_tab
+keybind = super+enter=toggle_fullscreen

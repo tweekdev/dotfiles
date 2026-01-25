@@ -118,6 +118,7 @@ brew bundle --file=~/.config/dotfiles/Brewfile
 ~/.config/vscode/     → dotfiles/vscode/
 ~/.config/sesh/       → dotfiles/sesh/
 ~/.config/git/        → dotfiles/git/
+~/.config/ghostty/    → dotfiles/ghostty/
 ~/.config/starship.toml → dotfiles/starship.toml
 ~/Pictures/Wallpapers/  ← dotfiles/wallpapers/ (copie)
 ```
@@ -225,6 +226,24 @@ brew update && brew upgrade    # Homebrew
 sdk selfupdate                 # SDKMAN
 npm update -g                  # npm global packages
 ```
+
+---
+
+## 🍎 macOS Defaults
+
+Configurer les préférences système macOS (Dock, Finder, Keyboard, etc.) :
+
+```bash
+./macos-defaults.sh
+```
+
+Ce script configure :
+- Clavier rapide (répétition des touches)
+- Dock auto-hide avec animations rapides
+- Finder avec barre de chemin et extensions
+- Screenshots dans ~/Pictures/Screenshots
+- Trackpad tap-to-click
+- Et plus...
 
 ---
 

@@ -13,11 +13,13 @@
 tap "coursier/formulas"
 tap "felixkratz/formulae"
 tap "koekeishiya/formulae"
+tap "homebrew/cask-fonts"
 
 # -----------------
 # CLI Tools - Essential
 # -----------------
 brew "git"
+brew "git-lfs"
 brew "zsh"
 brew "neovim"
 brew "tmux"
@@ -61,6 +63,13 @@ brew "coursier/formulas/coursier"
 # Database
 # -----------------
 brew "postgresql@15"
+
+# -----------------
+# Fonts (Nerd Fonts)
+# -----------------
+cask "font-jetbrains-mono-nerd-font"
+cask "font-fira-code-nerd-font"
+cask "font-hack-nerd-font"
 
 # -----------------
 # Casks (GUI Apps)

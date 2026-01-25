@@ -54,7 +54,7 @@ for file in "${files[@]}"; do
 done
 
 # Dossiers
-dirs=("nvim" "sesh" "cursor" "vscode" "git")
+dirs=("nvim" "sesh" "cursor" "vscode" "git" "ghostty")
 for dir in "${dirs[@]}"; do
   if [ -L "$CONFIG_DIR/$dir" ]; then
     echo "  ✅ $dir/"

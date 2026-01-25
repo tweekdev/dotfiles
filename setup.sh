@@ -345,7 +345,7 @@ do_links() {
   echo ""
   echo -e "  ${BOLD}Dossiers :${NC}"
   # Dossiers à remplacer
-  for DIR in nvim sesh cursor vscode git; do
+  for DIR in nvim sesh cursor vscode git ghostty; do
     TARGET="$CONFIG_DIR/$DIR"
     if [ "$DRY_RUN" = true ]; then
       log "DRY" "$DIR/ → ~/.config/$DIR"
@@ -582,7 +582,7 @@ do_rollback() {
       fi
     done
     
-    for dir in nvim sesh cursor vscode git; do
+    for dir in nvim sesh cursor vscode git ghostty; do
       if [ -d "$backup_dir/$dir" ]; then
         rm -rf "$CONFIG_DIR/$dir"
         cp -r "$backup_dir/$dir" "$CONFIG_DIR/$dir"
