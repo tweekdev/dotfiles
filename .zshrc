@@ -116,135 +116,131 @@ export NVM_DIR="$HOME/.nvm"
   [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
   [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
 
-
-function current_branch() {
-  ref=$(git symbolic-ref HEAD 2> /dev/null) || return
-  echo ${ref#refs/heads/}
-}
-
-function current_repository() {
-  ref=$(git symbolic-ref HEAD 2> /dev/null) || return
-  echo $(git remote -v | cut -d':' -f 2)
-}
-
+# ============================================
+# Project aliases (travauxlib)
+# ============================================
 alias fullCheck="yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
 alias fullCheckAdmin="cd ~/Developer/travauxlib/admin && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
 alias fullCheckPro="cd ~/Developer/travauxlib/pro && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
 alias fullCheckApp="cd ~/Developer/travauxlib/app && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
 alias fullCheckShared="cd ~/Developer/travauxlib/shared && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
 
-#alias fullCheck="cd ~/Developer/travauxlib && ./full-check-all.sh "
-#alias fullCheckAdmin="cd ~/Developer/travauxlib && ./full-check-all.sh admin"
-#alias fullCheckPro="cd ~/Developer/travauxlib && ./full-check-all.sh pro"
-#alias fullCheckApp="cd ~/Developer/travauxlib && ./full-check-all.sh app"
-#alias fullCheckShared="cd ~/Developer/travauxlib && ./full-check-all.sh shared"
+#alias fullCheck="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh "
+#alias fullCheckAdmin="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh admin"
+#alias fullCheckPro="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh pro"
+#alias fullCheckApp="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh app"
+#alias fullCheckShared="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh shared"
 
 alias check="yarn lint --fix && yarn typecheck"
 alias yt="DEBUG_PRINT_LIMIT=50000 yarn test"
 alias ytl="yarn test:local"
 alias pjt="cd Developer/travauxlib"
+
+# ============================================
+# General aliases
+# ============================================
 alias zshcode="code ~/.zshrc"
 alias cat='bat'
-alias ls='eza --color=always --long --git --icons=always' #my preferred listing
-alias lst='eza --color=always --long --git --icons=always --tree --level=3' #my preferred listing
+alias ls='eza --color=always --long --git --icons=always'
+alias lst='eza --color=always --long --git --icons=always --tree --level=3'
+
+# Tmux
 alias tml='tmux list-sessions'
 alias tmkt='tmux kill-session -t'
 alias tmk='tmux kill-session'
-#alias vim to neovim
+
+# Neovim
 alias vim='nvim'
 alias vi='nvim'
 alias v='nvim'
 alias n='nvim'
-alias sn= 'find . -name "*.js" -or -name "*.ts" | entr -r nvim'
+alias vif='nvim $(fzf)'
+alias sn='find . -name "*.js" -or -name "*.ts" | entr -r nvim'
 
-# Most used git command should be short.
-alias ga='git add'
-alias gap='ga --patch'
-alias gb='git branch'
-alias gba='gb --all'
-alias gc='git commit'
-alias gca='gc --amend --no-edit'
-alias gce='gc --amend'
-alias gco='git checkout'
-alias gcl='git clone --recursive'
-alias gd='git diff --output-indicator-new=" " --output-indicator-old=" "'
-alias gds='gd --staged'
-alias gi='git init'
-alias gl='git log --graph --all --pretty=format:"%C(magenta)%h %C(white) %an  %ar%C(blue)  %D%n%s%n"'
-alias gm='git merge'
-alias gn='git checkout -b'  # new branch
-alias gp='git push'
-alias gr='git reset'
-alias gs='git status --short'
-alias gu='git pull'
+# ============================================
+# Git aliases (cleaned - no duplicates)
+# ============================================
 
-alias s='git status -sb'
-alias ga='git add -A'
-alias gap='ga -p'
-alias add="git add -p ."
-alias adds="git add ."
-alias gst="git status"
-alias gcm="git commit -m "
-alias push='git push -u origin $(git_current_branch)'
-alias master="git checkout master"
-alias masterp="git checkout master && git pull"
-alias develop="git checkout develop"
-alias developp="git checkout develop && git pull"
-alias gcb='git checkout -b'
-
-alias gckm="git checkout -"
-alias pull="git pull"
-alias gbr='git branch -v'
-
-alias gch='git cherry-pick'
-
-alias gca!='git commit -v -a --amend'
-
-
-alias gco='git checkout'
-
-
-alias gd='git diff -M'
-alias gd.='git diff -M --color-words="."'
-alias gdc='git diff --cached -M'
-alias gdc.='git diff --cached -M --color-words="."'
-
-alias gf='git fetch'
-alias gfa='git fetch --all'
-
-# Helper function.
+# Helper function
 git_current_branch() {
   cat "$(git rev-parse --git-dir 2>/dev/null)/HEAD" | sed -e 's/^.*refs\/heads\///'
 }
 
+# Status
+alias s='git status -sb'
+alias gst="git status"
+
+# Add
+alias ga='git add -A'
+alias gap='git add -p'
+alias add="git add -p ."
+alias adds="git add ."
+
+# Commit
+alias gc='git commit'
+alias gcm="git commit -m "
+alias gca='git commit --amend --no-edit'
+alias gce='git commit --amend'
+alias gca!='git commit -v -a --amend'
+
+# Branch
+alias gb='git branch -v'
+alias gba='git branch --all'
+alias gcb='git checkout -b'
+alias gn='git checkout -b'
+alias gco='git checkout'
+alias gckm="git checkout -"
+alias master="git checkout master"
+alias masterp="git checkout master && git pull"
+alias develop="git checkout develop"
+alias developp="git checkout develop && git pull"
+
+# Push/Pull
+alias gp='git push'
+alias gpthis='gp origin $(git_current_branch)'
+alias gpthis!='gp --set-upstream origin $(git_current_branch)'
+alias push='git push -u origin $(git_current_branch)'
+alias pull="git pull"
+alias gu='git pull'
+alias gf='git fetch'
+alias gfa='git fetch --all'
+
+# Diff
+alias gd='git diff -M'
+alias gd.='git diff -M --color-words="."'
+alias gdc='git diff --cached -M'
+alias gdc.='git diff --cached -M --color-words="."'
+alias gds='git diff --staged'
+
+# Log
 alias glog='git log --date-order --pretty="format:%C(yellow)%h%Cblue%d%Creset %s %C(white) %an, %ar%Creset"'
 alias gl='glog --graph'
 alias gla='gl --all'
 
-alias gm='git merge --no-ff'
+# Show
+alias gsh='git show'
+alias gsh.='git show --color-words="."'
+
+# Merge/Rebase
+alias gm='git merge'
 alias gmf='git merge --ff-only'
-
-alias gp='git push'
-alias gpthis='gp origin $(git_current_branch)'
-alias gpthis!='gp --set-upstream origin $(git_current_branch)'
-
 alias grb='git rebase -p'
 alias grba='git rebase --abort'
 alias grbc='git rebase --continue'
 alias grbi='git rebase -i'
 
+# Reset
 alias gr='git reset'
 alias grh='git reset --hard'
 alias grsh='git reset --soft HEAD~'
 
+# Other git
+alias gcl='git clone --recursive'
+alias gi='git init'
 alias grv='git remote -v'
-
-alias gs='git show'
-alias gs.='git show --color-words="."'
-
 alias gsts='git stash'
 alias gstsp='git stash pop'
-
+alias gch='git cherry-pick'
 alias gfs='git feature-start '
 
 git_squash() {
@@ -253,33 +249,53 @@ git_squash() {
   git commit -m "$1"
 }
 
-# alias for sbt
+# ============================================
+# SBT
+# ============================================
 alias sbt="sbt -v -mem 2048"
 
-# z
-. /opt/homebrew/etc/profile.d/z.sh
+# ============================================
+# Zoxide (replaces z.sh)
+# ============================================
+eval "$(zoxide init zsh)"
 
-# docker
+# ============================================
+# Docker
+# ============================================
 alias d='docker'
 alias dc='docker-compose'
-alias fuckdocker=' docker run -p 5432:5432 --name hemea-db --restart=always -e POSTGRES_USER=hemea -e POSTGRES_DB=hemea -e POSTGRES_PASSWORD=hemea -d postgres'
+alias fuckdocker='docker run -p 5432:5432 --name hemea-db --restart=always -e POSTGRES_USER=hemea -e POSTGRES_DB=hemea -e POSTGRES_PASSWORD=hemea -d postgres'
 alias itdb="docker run -p 5431:5432 --name integration-test-db --restart=always -e POSTGRES_USER=play -e POSTGRES_DB=travauxlib-test -e POSTGRES_PASSWORD=play -d postgres &"
 
+# ============================================
+# DB connect aliases
+# ============================================
+alias dbprod='cd ~/Developer/travauxlib/scripts && ./db_connect.js prod'
+alias dbdev='cd ~/Developer/travauxlib/scripts && ./db_connect.js develop'
+alias dbrecette='cd ~/Developer/travauxlib/scripts && ./db_connect.js recette'
 
+# ============================================
+# Project start aliases
+# ============================================
+alias all='cd ~/Developer/travauxlib/scripts && ./start.sh all'
+alias main='cd ~/Developer/travauxlib/scripts && ./start.sh main'
+alias admin='cd ~/Developer/travauxlib/scripts && ./start.sh admin'
+alias pro='cd ~/Developer/travauxlib/scripts && ./start.sh pro'
+alias app='cd ~/Developer/travauxlib/scripts && ./start.sh app'
+alias shared='cd ~/Developer/travauxlib/scripts && ./start.sh shared'
+alias pdf='cd ~/Developer/travauxlib/scripts && ./start.sh pdf'
 
-# alias connect db
-alias dbprod=' cd ~/Developer/travauxlib/scripts && ./db_connect.js prod'
-alias dbdev=' cd ~/Developer/travauxlib/scripts && ./db_connect.js develop'
-alias dbrecette=' cd ~/Developer/travauxlib/scripts && ./db_connect.js recette'
+# ============================================
+# Brewfile
+# ============================================
+alias brewfile='brew bundle --file=~/.config/dotfiles/Brewfile'
+alias brewcheck='brew bundle check --file=~/.config/dotfiles/Brewfile'
+alias brewclean='brew bundle cleanup --file=~/.config/dotfiles/Brewfile'
+alias brewdump='brew bundle dump --force --file=~/.config/dotfiles/Brewfile'
 
-alias all='cd ~/Developer/travauxlib && ./start.sh all'
-alias main='cd ~/Developer/travauxlib && ./start.sh main'
-alias admin='cd ~/Developer/travauxlib && ./start.sh admin'
-alias pro='cd ~/Developer/travauxlib && ./start.sh pro'
-alias app='cd ~/Developer/travauxlib && ./start.sh app'
-alias shared='cd ~/Developer/travauxlib && ./start.sh shared'
-alias pdf='cd ~/Developer/travauxlib && ./start.sh pdf'
-
+# ============================================
+# Sesh sessions
+# ============================================
 function sesh-sessions() {
   {
     exec </dev/tty
@@ -297,17 +313,15 @@ bindkey -M emacs '\es' sesh-sessions
 bindkey -M vicmd '\es' sesh-sessions
 bindkey -M viins '\es' sesh-sessions
 
-# alias restart scheduler
-alias restartscheduler=' curl https://api.hemea.com/api/admin-public/schedulers/start-all -H '\x-schedulers-control-key: N1Os6IBXk3QMdb56ByLY'\'
-
-# alias fzf with nvim
-alias vif='nvim $(fzf)'
+# ============================================
+# Misc
+# ============================================
+alias restartscheduler='curl https://api.hemea.com/api/admin-public/schedulers/start-all -H '\''x-schedulers-control-key: N1Os6IBXk3QMdb56ByLY'\'''
 
 # fzf
 source <(fzf --zsh)
 
-##### TMUX options
-
+# TMUX options
 tsa() {
 	status_bar=$(cat $TMUX_SATUS_BAR)
 	tmux set-option -g status-right "$1 $status_bar"
@@ -319,13 +333,20 @@ tsd() {
 	status_bar=$(cat $TMUX_SATUS_BAR)
 	tmux set-option -g status-right "$status_bar"
 }
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
+# ============================================
+# PATH exports
+# ============================================
 PATH="/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH"
-
-eval "$(starship init zsh)"
 
 # Added by Windsurf
 export PATH="/Users/tweekdev/.codeium/windsurf/bin:$PATH"
+
+# ============================================
+# Starship prompt (keep near end)
+# ============================================
+eval "$(starship init zsh)"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"

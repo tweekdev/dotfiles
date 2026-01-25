@@ -1,105 +1,154 @@
-# 💻 Mac Dev Environment Setup
+# 🛠️ Dotfiles
 
-Ce dépôt contient un script Bash pour configurer rapidement un environnement de développement moderne sur macOS (Apple Silicon).
+Configuration personnelle pour macOS (Apple Silicon).
 
 ---
 
-## 🚀 Première installation sur un nouveau MacBook
+## 🚀 Nouveau Mac ? Fais ça :
 
-### Étape 1 : Installer Git (si nécessaire)
+### Étape 1 : Ouvre Terminal
 
-Sur macOS, Git peut être installé de deux façons :
+Cherche "Terminal" dans Spotlight (Cmd + Espace) et ouvre-le.
 
-**Option A : Via Xcode Command Line Tools (recommandé)**
-```bash
-xcode-select --install
-```
-
-**Option B : Via Homebrew (si Homebrew est déjà installé)**
-```bash
-brew install git
-```
-
-### Étape 2 : Cloner ce dépôt
+### Étape 2 : Copie-colle cette commande
 
 ```bash
-# Créer le dossier de configuration si nécessaire
-mkdir -p ~/.config
-
-# Cloner le dépôt (remplacez <URL_DU_REPO> par l'URL de votre dépôt)
-cd ~/.config
-git clone <URL_DU_REPO> dotfiles
-
-# Aller dans le dossier
-cd dotfiles
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/tweekdev/dotfiles/master/bootstrap.sh)"
 ```
 
-> **Note :** Si vous n'avez pas encore de dépôt Git, vous pouvez créer un nouveau dépôt sur GitHub/GitLab, puis cloner l'URL fournie.
-
-### Étape 3 : Exécuter le script de setup
-
-```bash
-# Rendre le script exécutable
-chmod +x setup.sh
-
-# Installer tous les outils et créer les liens symboliques
-./setup.sh all
-```
+### Étape 3 : Attends
 
 Le script va :
-1. Installer Homebrew (si pas déjà installé)
-2. Installer tous les outils nécessaires (Git, Neovim, Node.js, etc.)
-3. Créer les liens symboliques vers vos dotfiles
+1. Installer Xcode Command Line Tools (si nécessaire)
+2. Installer Homebrew
+3. Cloner ce repo dans `~/.config/dotfiles`
+4. Installer tous les outils (Brewfile)
+5. Créer les symlinks
 
-### Étape 4 : Redémarrer le terminal
+**Durée : ~15-20 minutes** (selon ta connexion)
 
-Fermez et rouvrez votre terminal pour que tous les changements prennent effet.
+### Étape 4 : Redémarre le terminal
 
-### Étape 5 : Configurer Neovim (première fois)
+Ferme et rouvre Terminal (ou lance `source ~/.zshrc`).
 
-Lors de la première ouverture de Neovim, les plugins seront automatiquement installés via LazyVim :
+### Étape 5 : Ouvre Neovim
+
 ```bash
 nvim
 ```
 
-Attendez que l'installation des plugins se termine (cela peut prendre quelques minutes).
+Les plugins s'installent automatiquement au premier lancement.
 
 ---
 
-## 🛠️ Modes disponibles
+## ⚠️ Si Xcode demande une installation
 
-Le script accepte plusieurs modes d'exécution :
-
-### Modes de base
-- `install` – Installe les outils et dépendances.
-- `links` – Crée des symlinks vers les dotfiles (avec backup automatique).
-- `all` – Exécute à la fois `install` et `links`.
-
-### Modes avancés
-- `update` – Met à jour les outils déjà installés (Homebrew, plugins Zsh/Tmux).
-- `check` – Vérifie l'état de l'installation et l'intégrité des symlinks.
-- `clean` – Nettoie les fichiers temporaires et anciens backups (garde les 5 derniers).
-- `rollback` – Restaure un backup précédent (liste les backups disponibles).
-- `sync` – Synchronise avec le dépôt distant et met à jour les symlinks.
+Si le script s'arrête avec un message sur Xcode :
+1. Une fenêtre va s'ouvrir pour installer Xcode Command Line Tools
+2. Clique "Installer" et attends la fin
+3. **Relance la même commande** (Étape 2)
 
 ---
 
-## ▶️ Utilisation
+## 🔧 Installation manuelle (alternative)
 
-### Utilisation de base
+Si le one-liner ne marche pas :
 
 ```bash
-chmod +x setup.sh
-./setup.sh {install|links|all|update|check|clean|rollback|sync}
+# 1. Installer Xcode Command Line Tools
+xcode-select --install
+# Attendre la fin de l'installation...
+
+# 2. Installer Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 3. Cloner les dotfiles
+mkdir -p ~/.config
+cd ~/.config
+git clone https://github.com/tweekdev/dotfiles.git
+cd dotfiles
+
+# 4. Lancer l'installation
+./setup.sh all
+
+# 5. Redémarrer le terminal
 ```
 
-### Options disponibles
+---
 
-- `--dry-run` – Simulation sans exécution (affiche ce qui serait fait).
-- `--log FILE` – Enregistre tous les logs dans un fichier.
-- `--only TOOLS` – Installe uniquement les outils spécifiés (séparés par des virgules).
-- `--profile PROFILE` – Utilise un profil d'installation (`minimal`, `dev`, `full`).
-- `--verbose` ou `-v` – Mode verbeux (affiche plus de détails).
+## 📦 Ce qui est installé
+
+### Via Brewfile (automatique)
+
+| Catégorie | Outils |
+|-----------|--------|
+| **Terminal** | Ghostty, tmux, starship |
+| **Éditeurs** | Neovim, Cursor, VS Code |
+| **Dev Tools** | git, gh, lazygit, fzf, ripgrep |
+| **Node.js** | nvm, yarn (via npm) |
+| **Java/Scala** | SDKMAN, Java 17, Scala, SBT |
+| **Shell** | zsh, Oh My Zsh, zsh-autosuggestions, zsh-syntax-highlighting |
+| **Utilitaires** | bat, eza, zoxide, jq, fd, entr |
+| **Cloud** | AWS CLI, Google Cloud SDK |
+| **Apps** | Raycast, Zen Browser |
+
+### Apps manuelles (optionnel)
+
+Ces apps sont commentées dans le Brewfile car souvent déjà installées :
+- Docker Desktop
+- Google Chrome  
+- Slack
+
+Pour les installer via Homebrew, décommentez-les dans `Brewfile` puis :
+```bash
+brew bundle --file=~/.config/dotfiles/Brewfile
+```
+
+---
+
+## 🔗 Symlinks créés
+
+```
+~/.zshrc              → dotfiles/.zshrc
+~/.tmux.conf          → dotfiles/.tmux.conf
+~/.gitconfig          → dotfiles/.gitconfig
+~/.gitignore_global   → dotfiles/.gitignore_global
+~/.config/nvim/       → dotfiles/nvim/
+~/.config/cursor/     → dotfiles/cursor/
+~/.config/vscode/     → dotfiles/vscode/
+~/.config/sesh/       → dotfiles/sesh/
+~/.config/git/        → dotfiles/git/
+~/.config/starship.toml → dotfiles/starship.toml
+```
+
+---
+
+## 🎮 Commandes
+
+```bash
+./setup.sh <mode> [options]
+```
+
+### Modes
+
+| Mode | Description |
+|------|-------------|
+| `all` | Installation complète (install + links) |
+| `install` | Installe les outils via Brewfile |
+| `links` | Crée les symlinks |
+| `update` | Met à jour tout (Homebrew, npm, plugins) |
+| `check` | Vérifie l'état de l'installation |
+| `clean` | Nettoie les anciens backups |
+| `rollback` | Restaure un backup précédent |
+| `sync` | Pull git + met à jour les symlinks |
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Simulation sans exécution |
+| `--verbose` | Mode verbeux |
+| `--log FILE` | Enregistre les logs |
 
 ### Exemples
 
@@ -107,123 +156,96 @@ chmod +x setup.sh
 # Installation complète
 ./setup.sh all
 
-# Installation avec profil minimal
-./setup.sh install --profile minimal
+# Simulation
+./setup.sh all --dry-run
 
-# Installation sélective
-./setup.sh install --only neovim,tmux,git
-
-# Simulation (dry-run)
-./setup.sh install --dry-run
-
-# Avec logging
-./setup.sh install --log setup.log
-
-# Vérification de l'état
+# Vérification
 ./setup.sh check
 
 # Mise à jour
 ./setup.sh update
 
-# Nettoyage
-./setup.sh clean
-
-# Restauration d'un backup
+# Restaurer un backup
 ./setup.sh rollback
 ```
 
-> **Note:** Le script peut être exécuté plusieurs fois sans problème (idempotent).
-
-> **Note:** Le script crée automatiquement un backup avant toute modification.
-
-## 📦 Ce que le script installe (`install` ou `all`)
-
-- **Homebrew** – Gestionnaire de paquets macOS (avec mise à jour automatique)
-- **Rosetta 2** – Compatibilité avec les applications Intel
-- **Docker Desktop** – Version ARM64 (installation automatique)
-- **Node.js** (via `nvm`), en version LTS
-- **Yarn**, **TypeScript**
-- **Neovim**, **tmux**, **fzf**, **bat**, **git**, **zsh**
-- **eza**, **zoxide**, **gh**, **lazygit**, **coursier**, **starship**
-- **ripgrep**, **git-flow-avh**, **gnu-tar**, **postgresql**, **pigz**, **diff-so-fancy**, **sesh**
-- **AWS CLI**, **Google Cloud SDK**
-- **Raycast**, **Slack**, **Ghostty**, **Google Chrome**
-- **Cursor** – Éditeur de code IA
-- **Oh My Zsh**, avec :
-  - `zsh-syntax-highlighting` (mise à jour automatique)
-  - `zsh-autosuggestions` (mise à jour automatique)
-- **Kitty** – Terminal moderne
-- **Tmux Plugin Manager (TPM)** (avec installation automatique des plugins)
-- **SDKMAN** avec Java, Scala et SBT
-
 ---
 
-## 🔗 Symlinks créés (`links` ou `all`)
+## 🍺 Brewfile
 
-Le script crée automatiquement un backup de vos fichiers existants dans `~/.config/dotfiles-backup-YYYYMMDD-HHMMSS/`, puis crée des liens symboliques vers les dotfiles stockés dans `~/.config/dotfiles` :
-
-- `~/.zshrc`
-- `~/.tmux.conf`
-- `~/.gitconfig`
-- `~/.gitignore_global`
-- `~/.config/nvim`
-- `~/.config/kitty`
-- `~/.config/sesh`
-- `~/.config/cursor` (configuration Cursor)
-- `~/.config/vscode` (configuration VSCode)
-- `~/.config/starship.toml`
-
-> **Note :** Le fichier `~/.z` (base de données z/zoxide) n'est pas suivi par git car il contient des données locales qui changent constamment.
-
-> **Note :** Les configurations Cursor et VSCode sont automatiquement sauvegardées depuis `~/Library/Application Support/` lors de l'installation.
-
----
-
-## 📝 Prérequis
-
-- macOS avec puce Apple Silicon
-- Dossier `~/.config/dotfiles` correctement structuré
-
----
-
-## ✨ Fonctionnalités
-
-### Fonctionnalités de base
-- ✅ **Backup automatique** : Tous les fichiers existants sont sauvegardés avant d'être remplacés
-- ✅ **Vérifications préliminaires** : Connexion internet et architecture système
-- ✅ **Mise à jour automatique** : Homebrew et tous les packages sont mis à jour
-- ✅ **Détection intelligente** : Le script détecte ce qui est déjà installé
-- ✅ **Configuration automatique** : NVM, Git et plugins sont configurés automatiquement
-- ✅ **Gestion d'erreurs** : Messages clairs en cas de problème
-
-### Fonctionnalités avancées
-- ✅ **Sauvegarde Cursor/VSCode** : Sauvegarde automatique des configurations des éditeurs
-- ✅ **Mode dry-run** : Simulation sans exécution pour vérifier les actions
-- ✅ **Installation sélective** : Installation uniquement des outils spécifiés
-- ✅ **Profils d'installation** : Profils prédéfinis (minimal, dev, full)
-- ✅ **Logging** : Enregistrement de toutes les actions dans un fichier
-- ✅ **Vérification de santé** : Mode `check` pour vérifier l'état de l'installation
-- ✅ **Restauration** : Mode `rollback` pour restaurer un backup précédent
-- ✅ **Synchronisation** : Mode `sync` pour synchroniser avec le dépôt distant
-- ✅ **Nettoyage automatique** : Mode `clean` pour nettoyer les anciens backups
-
-## 🔧 Script de maintenance
-
-Un script de maintenance automatique est disponible :
+Gestion déclarative des packages Homebrew.
 
 ```bash
-./maintain.sh
-```
+# Installer les packages manquants
+brewfile        # ou: brew bundle --file=~/.config/dotfiles/Brewfile
 
-Ce script effectue :
-- Vérification des mises à jour du dépôt
-- Vérification de l'intégrité des symlinks
-- Nettoyage des anciens backups (garde les 5 derniers)
-- Vérification des mises à jour Homebrew
-- Rapport sur l'espace disque utilisé
+# Vérifier l'état
+brewcheck       # ou: brew bundle check --file=~/.config/dotfiles/Brewfile
+
+# Voir les packages non déclarés
+brewclean       # ou: brew bundle cleanup --file=~/.config/dotfiles/Brewfile
+
+# Exporter les packages installés
+brewdump        # ou: brew bundle dump --force --file=~/.config/dotfiles/Brewfile
+```
 
 ---
 
-## ⚠️ Avertissement
+## 📁 Structure
 
-Ce script **remplacera vos fichiers de configuration existants** par des symlinks. Un backup automatique est créé dans `~/.config/dotfiles-backup-YYYYMMDD-HHMMSS/` avant toute modification.
+```
+~/.config/dotfiles/
+├── .zshrc              # Config Zsh + aliases
+├── .tmux.conf          # Config Tmux
+├── .gitconfig          # Config Git
+├── .gitignore_global   # Gitignore global
+├── Brewfile            # Packages Homebrew
+├── starship.toml       # Prompt Starship
+├── setup.sh            # Script d'installation
+├── maintain.sh         # Script de maintenance
+├── cursor/             # Config Cursor IDE
+├── vscode/             # Config VS Code
+├── nvim/               # Config Neovim (LazyVim)
+├── sesh/               # Sessions Tmux
+├── git/                # Templates Git
+└── scripts/            # Scripts utilitaires
+```
+
+---
+
+## ⚙️ Maintenance
+
+```bash
+# Mise à jour complète
+./setup.sh update
+
+# Ou manuellement :
+brew update && brew upgrade    # Homebrew
+sdk selfupdate                 # SDKMAN
+npm update -g                  # npm global packages
+```
+
+---
+
+## 🔄 Synchronisation
+
+Pour synchroniser les dotfiles après des modifications :
+
+```bash
+# Depuis le repo distant
+./setup.sh sync
+
+# Ou manuellement
+cd ~/.config/dotfiles
+git pull
+./setup.sh links
+```
+
+---
+
+## ⚠️ Notes
+
+- **Backup automatique** : Les fichiers existants sont sauvegardés dans `~/.config/dotfiles-backup-*`
+- **Idempotent** : Le script peut être exécuté plusieurs fois sans problème
+- **Apple Silicon** : Optimisé pour les Mac M1/M2/M3
+- **Git config** : Ton nom/email sont dans `.gitconfig`, pas besoin de les reconfigurer

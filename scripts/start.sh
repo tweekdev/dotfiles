@@ -1,358 +1,343 @@
 #!/bin/bash
 
-MODE=$1
-ONLY=$2
+set -o pipefail
 
-# Vérifie si l'utilisateur est déjà dans une session tmux
-CURRENT_SESSION=$(tmux display-message -p '#S' 2>/dev/null)
-
-if [[ -z $MODE ]]; then
-  echo "Usage: $0 {main|all|shared|admin|app|api|pro|pdf} [only]"
-  exit 1
-fi
-
-SESSION_NAME="hemea-$MODE"
-MAIN_SESSION="hemea-main"
-session_created=false
-# Tableau des services redémarrés
-restarted_services=()
-
-# Tue tout processus écoutant sur le port donné
-free_port_if_used() {
-  local port=$1
-  pid=$(lsof -ti tcp:"$port")
-  if [[ -n "$pid" ]]; then
-    echo "🔌 Port $port occupé par PID $pid — kill..."
-    kill -9 "$pid"
-  fi
-}
-
-# Envoie une commande dans le pane, quelle que soit la situation actuelle
-# + tue les processus écoutant sur les ports associés
-send_if_absent() {
-  local pane=$1
-  local pattern=$2
-  local cmd=$3
-  shift 3
-  local ports=("$@")
-
-  # Libérer les ports avant d'envoyer
-  for port in "${ports[@]}"; do
-    free_port_if_used "$port"
-  done
-
-  # Vérifier si le service est déjà en cours d'exécution
-  service_running=false
-  if tmux capture-pane -pt "$pane" 2>/dev/null | grep -q "$pattern"; then
-    service_running=true
-  fi
-
-  # Force le redémarrage si on est en mode "only" ou si on change de mode
-  if [[ "$ONLY" == "only" || "$MODE_CHANGED" == "true" ]]; then
-    # Envoyer d'abord un Ctrl+C pour arrêter proprement
-    tmux send-keys -t "$pane" C-c
-    sleep 0.2
-    # Puis effacer l'écran
-    tmux send-keys -t "$pane" "clear" Enter
-    service_running=false
-  fi
-  
-  # Lancer le service s'il n'est pas en cours
-  if ! $service_running; then
-    # Vérifier le répertoire actuel de façon plus fiable
-    # On envoie pwd pour être sûr du répertoire actuel puis on le récupère
-    tmux send-keys -t "$pane" "pwd > /tmp/tmux_pwd_$$.tmp && clear" Enter
-    sleep 0.1
-    current_dir=$(cat "/tmp/tmux_pwd_$$.tmp" 2>/dev/null || echo "")
-    rm -f "/tmp/tmux_pwd_$$.tmp" 2>/dev/null
-    
-    # Simplifier pour éviter les erreurs de syntaxe avec regex
-    target_folder=""
-    
-    # Vérifier si la commande commence par 'cd' suivi d'un dossier
-    if echo "$cmd" | grep -q "^cd [^ &;]\+"; then
-      # Extraire le nom du dossier après cd
-      target_folder=$(echo "$cmd" | sed -E 's/^cd ([^ &;]+).*/\1/')
-      
-      # Vérifier si on est déjà dans le bon dossier
-      if [[ "$current_dir" == *"$target_folder"* || "$current_dir" == *"/$(basename "$target_folder")"* ]]; then
-        # Extraire la commande après '&&' s'il y en a une
-        if echo "$cmd" | grep -q "&&"; then
-          # Récupérer la partie après '&&'
-          cmd=$(echo "$cmd" | sed -E 's/^cd [^ &;]+ *&& *//')
-          echo "Déjà dans $target_folder, exécution directe de: $cmd"
-        fi
-      fi
-    fi
-    
-    tmux send-keys -t "$pane" "$cmd" Enter
-    restarted_services+=("$cmd")  # Ajout du service redémarré au tableau
-  fi
-}
-
-# Détecter si on a changé de mode (silencieusement)
-MODE_CHANGED="false"
+# === Configuration ===
+MODE=${1:-}
+ONLY=${2:-}
+SESSION_NAME="hemea-${MODE}"
 LAST_MODE_FILE="/tmp/hemea_last_mode"
-if [[ -f "$LAST_MODE_FILE" ]]; then
-  LAST_MODE=$(cat "$LAST_MODE_FILE" 2>/dev/null)
-  [[ "$LAST_MODE" != "$MODE" ]] && MODE_CHANGED="true"
-fi
-# Sauvegarder le mode actuel pour la prochaine exécution
-echo "$MODE" > "$LAST_MODE_FILE" 2>/dev/null
+START_TIME=$(date +%s)
 
-if [[ "$ONLY" == "only" ]]; then
-  # Mode 'only' : on tue toutes les autres sessions
-  echo "🛡️ Option 'only' activée - Mode exclusif pour $SESSION_NAME"
+# Couleurs
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+# === Aide ===
+show_help() {
+  echo -e "${BOLD}Usage:${NC} $0 <mode> [option]"
+  echo ""
+  echo -e "${BOLD}Modes disponibles:${NC}"
+  echo -e "  ${GREEN}main${NC}     API + Admin + App + Pro          ${CYAN}:9000 :3030 :3010 :3050${NC}"
+  echo -e "  ${GREEN}all${NC}      Tout (6 services)                ${CYAN}+ :4999 :61000${NC}"
+  echo -e "  ${GREEN}admin${NC}    Admin + API                      ${CYAN}:3030 :9000${NC}"
+  echo -e "  ${GREEN}app${NC}      App + API                        ${CYAN}:3010 :9000${NC}"
+  echo -e "  ${GREEN}pro${NC}      Pro + API                        ${CYAN}:3050 :9000${NC}"
+  echo -e "  ${GREEN}pdf${NC}      PDF-service + API                ${CYAN}:4999 :9000${NC}"
+  echo -e "  ${GREEN}api${NC}      API seul                         ${CYAN}:9000${NC}"
+  echo -e "  ${GREEN}shared${NC}   Shared seul                      ${CYAN}:61000${NC}"
+  echo ""
+  echo -e "${BOLD}Commandes:${NC}"
+  echo -e "  ${GREEN}--status${NC}    État des services"
+  echo -e "  ${GREEN}--stop${NC}      Arrête tous les services"
+  echo -e "  ${GREEN}--open${NC}      Ouvre les URLs dans le navigateur"
+  echo ""
+  echo -e "${BOLD}Options:${NC}"
+  echo -e "  ${YELLOW}only${NC}        Mode exclusif : tue les autres sessions"
+  echo ""
+  echo -e "${BOLD}Exemples:${NC}"
+  echo -e "  ${CYAN}$0 main${NC}              # Dev standard"
+  echo -e "  ${CYAN}$0 main --restart${NC}    # Force redémarrage"
+  echo -e "  ${CYAN}$0 --status${NC}          # État des services"
+  echo -e "  ${CYAN}$0 --open${NC}            # Ouvre le navigateur"
+  exit 0
+}
+
+# === Commandes spéciales ===
+[[ -z "$MODE" || "$MODE" == "--help" || "$MODE" == "-h" ]] && show_help
+
+# --status : Afficher l'état des services
+if [[ "$MODE" == "--status" ]]; then
+  echo -e "${BOLD}📊 État des services:${NC}"
+  echo ""
   
-  # Vérifier si nous sommes dans la session cible
-  if [[ "$CURRENT_SESSION" == "$SESSION_NAME" ]]; then
-    echo "Session actuelle = $SESSION_NAME. On tue toutes les autres."
-    tmux list-sessions -F '#S' | grep -v "^$SESSION_NAME\$" | xargs -I {} tmux kill-session -t {}
-    
-    # Fermer toutes les fenêtres sauf celle en cours
-    current_window=$(tmux display-message -p '#I')
-    for window in $(tmux list-windows -t "$SESSION_NAME" -F '#I' | grep -v "^$current_window$"); do
-      tmux kill-window -t "$SESSION_NAME:$window"
-    done
-    
-    # Si la fenêtre active n'est pas 'work', la créer
-    if ! tmux list-windows -t "$SESSION_NAME" | grep -q "work"; then
-      tmux rename-window -t "$SESSION_NAME" work
-    fi
-  else
-    # Utiliser une approche alternative: créer la nouvelle session d'abord,
-    # puis détacher toutes les autres sessions pour les tuer plus tard
-    
-    # Créer d'abord la nouvelle session (même si elle existe déjà)
-    if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-      echo "🚪 La session $SESSION_NAME existe déjà, on s'y attache."
-      # On ne la tue pas, on va la "recycler"
+  check_port() {
+    local name=$1
+    local port=$2
+    if lsof -ti tcp:"$port" &>/dev/null; then
+      echo -e "  ${GREEN}●${NC} $name ${CYAN}:$port${NC}"
     else
-      echo "🎯 Création de la session $SESSION_NAME"
-      tmux new-session -s "$SESSION_NAME" -d -n work
+      echo -e "  ${RED}○${NC} $name ${CYAN}:$port${NC}"
     fi
-    
-    # S'attacher à la nouvelle session
-    tmux switch-client -t "$SESSION_NAME"
-    
-    # Puis tuer toutes les autres sessions à la fin du script avec un trap
-    cleanup_sessions=""
-    for sess in $(tmux list-sessions -F '#S' 2>/dev/null | grep -v "^$SESSION_NAME\$"); do
-      cleanup_sessions="$cleanup_sessions $sess"
-    done
-    
-    # Sauvegarder les sessions à nettoyer pour le trap
-    if [[ -n "$cleanup_sessions" ]]; then
-      echo "Sessions à nettoyer à la fin: $cleanup_sessions"
-      # Créer un trap pour exécuter à la fin du script
-      trap "echo 'Nettoyage des sessions...'; for sess in $cleanup_sessions; do tmux kill-session -t \"\$sess\" 2>/dev/null || true; done" EXIT
-    fi
-    
-    # La session a déjà été créée ou nous nous y sommes attachés plus haut
-  fi
-  
-  # Toujours indiquer que la session a été créée/recréée
-  session_created=true
-else
-  # Mode normal (pas 'only')
-  if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-    echo "La session $SESSION_NAME existe déjà, on s'y attache."
-    tmux switch-client -t "$SESSION_NAME"
-  else
-    tmux new-session -s "$SESSION_NAME" -d -n work
-    session_created=true
-    tmux switch-client -t "$SESSION_NAME"
-  fi
-fi
-
-# Gérer la fenêtre 'work'
-if [[ "$session_created" == false ]]; then
-  if tmux list-windows -t "$SESSION_NAME" | grep -q "^0: work"; then
-    tmux select-window -t "$SESSION_NAME:work"
-  else
-    tmux new-window -t "$SESSION_NAME" -n work
-    tmux select-window -t "$SESSION_NAME:work"
-  fi
-fi
-
-# === MAIN ou ALL: Création des 6 panneaux ===
-if [[ "$MODE" == "main" || "$MODE" == "all" ]]; then
-  echo "Préparation de la structure pour le mode $MODE"
-  
-  # Sélectionner ou créer la fenêtre work
-  if tmux list-windows -t "$SESSION_NAME" | grep -q "work"; then
-    tmux select-window -t "$SESSION_NAME:work"
-  else
-    tmux new-window -t "$SESSION_NAME" -n work
-  fi
-
-  # Toujours recréer complètement les panneaux en mode "only"
-  if [[ "$ONLY" == "only" || "$session_created" == "true" ]]; then
-    echo "Recréation complète des panneaux pour $MODE"
-
-    # Forcer la suppression explicite de tous les panneaux sauf le premier
-    while [[ $(tmux list-panes -t "$SESSION_NAME:work" | wc -l | tr -d ' ') -gt 1 ]]; do
-      pane_count=$(tmux list-panes -t "$SESSION_NAME:work" | wc -l | tr -d ' ')
-      for (( i=$pane_count-1; i>0; i-- )); do
-        echo "Suppression du panneau $i"
-        tmux kill-pane -t "$SESSION_NAME:work.$i" 2>/dev/null || true
-      done
-    done
-    
-    # Après avoir nettoyé, créer 6 panneaux en sequence
-    # Vérification que nous avons au moins un panneau
-    if [[ $(tmux list-panes -t "$SESSION_NAME:work" | wc -l | tr -d ' ') -lt 1 ]]; then
-      echo "Aucun panneau trouvé, création d'un panneau initial"
-      tmux new-window -t "$SESSION_NAME" -n work
-    fi
-
-    # Définir un layout plus simple et fiable
-    tmux select-layout -t "$SESSION_NAME:work" even-horizontal
-    sleep 0.2
-
-    echo "Création du panneau 1"
-    tmux split-window -h -t "$SESSION_NAME:work.0"
-    sleep 0.2
-    
-    echo "Création du panneau 2 et 3"
-    tmux split-window -v -t "$SESSION_NAME:work.0"
-    sleep 0.2
-    tmux split-window -v -t "$SESSION_NAME:work.2"
-    sleep 0.2
-    
-    echo "Création du panneau 4 et 5"
-    tmux split-window -v -t "$SESSION_NAME:work.1"
-    sleep 0.2
-    tmux split-window -v -t "$SESSION_NAME:work.4"
-    sleep 0.2
-    
-    # Forcer le layout tiled pour une meilleure disposition
-    tmux select-layout -t "$SESSION_NAME:work" tiled
-    sleep 0.2
-  fi
-
-  tmux select-layout -t "$SESSION_NAME" tiled
-
-  # Un peu de temps pour que tout soit bien initialisé
-  sleep 0.5
-  
-  # Récupérer les IDs des panneaux
-  panes=($(tmux list-panes -t "$SESSION_NAME:work" -F '#{pane_id}'))
-
-  # Assignation logique
-  pane_api=${panes[0]}
-  pane_admin=${panes[1]}
-  pane_app=${panes[2]}
-  pane_pro=${panes[3]}
-  pane_pdf=${panes[4]}
-  pane_shared=${panes[5]}
-
-  # Fonction pour envoyer la commande correcte selon l'emplacement
-  execute_in_dir() {
-    local pane=$1
-    local dir=$2
-    local cmd=$3
-    local port=$4
-    
-    # Exécuter pwd dans le panneau pour savoir où on est
-    tmux send-keys -t "$pane" "pwd > /tmp/tmux_dir_$$.tmp && clear" Enter
-    sleep 0.2
-    local current=$(cat "/tmp/tmux_dir_$$.tmp" 2>/dev/null || echo "")
-    rm -f "/tmp/tmux_dir_$$.tmp"
-    
-    # Libérer le port
-    free_port_if_used "$port"
-    
-    # Déterminer si on doit changer de répertoire
-    if [[ "$current" == *"/$dir"* || "$current" == *"/travauxlib/$dir"* ]]; then
-      tmux send-keys -t "$pane" "$cmd" Enter
-    else
-      tmux send-keys -t "$pane" "cd $dir && $cmd" Enter
-    fi
-    
-    # Ajouter aux services redémarrés
-    restarted_services+=("$dir: $cmd")
   }
   
-  # Lancer les services de base (pour main et all) avec la nouvelle fonction
-  execute_in_dir "$pane_api" "api" "sbt run" 9000
-  execute_in_dir "$pane_admin" "admin" "yarn start" 3030
-  execute_in_dir "$pane_app" "app" "yarn start" 3010
-  execute_in_dir "$pane_pro" "pro" "yarn start" 3050
+  check_port "API" 9000
+  check_port "Admin" 3030
+  check_port "App" 3010
+  check_port "Pro" 3050
+  check_port "PDF" 4999
+  check_port "Shared" 61000
+  
+  echo ""
+  echo -e "${BOLD}Sessions tmux:${NC}"
+  tmux list-sessions 2>/dev/null | sed 's/^/  /' || echo "  Aucune session"
+  exit 0
+fi
 
-  if [[ "$MODE" == "all" ]]; then
-    # Mode ALL: lancer aussi pdf-service et shared
-    execute_in_dir "$pane_pdf" "pdf-service" "yarn start" 4999
-    execute_in_dir "$pane_shared" "shared" "yarn start:local" 61000
-  elif [[ "$MODE" == "main" && "$MODE_CHANGED" == "true" ]]; then
-    # Si on est passé de all à main, arrêter les services supplémentaires
-    tmux send-keys -t "$pane_pdf" C-c
-    sleep 0.2
-    tmux send-keys -t "$pane_pdf" "clear" Enter
-    tmux send-keys -t "$pane_shared" C-c
-    sleep 0.2
-    tmux send-keys -t "$pane_shared" "clear" Enter
+# --stop : Arrêter tous les services
+if [[ "$MODE" == "--stop" ]]; then
+  echo -e "${YELLOW}🛑 Arrêt des services...${NC}"
+  
+  # Tuer les processus sur les ports
+  for port in 9000 3030 3010 3050 4999 61000; do
+    pid=$(lsof -ti tcp:"$port" 2>/dev/null)
+    if [[ -n "$pid" ]]; then
+      kill -9 "$pid" 2>/dev/null
+      echo -e "  ${RED}✗${NC} Port $port (PID $pid)"
+    fi
+  done
+  
+  # Tuer les sessions hemea
+  for sess in $(tmux list-sessions -F '#S' 2>/dev/null | grep "^hemea-"); do
+    tmux kill-session -t "$sess" 2>/dev/null
+    echo -e "  ${RED}✗${NC} Session $sess"
+  done
+  
+  echo -e "${GREEN}✅ Tout arrêté${NC}"
+  exit 0
+fi
+
+# --open : Ouvrir les URLs dans le navigateur
+if [[ "$MODE" == "--open" ]]; then
+  echo -e "${BLUE}🌐 Ouverture des URLs...${NC}"
+  
+  # URLs des services
+  declare -a URLS=(
+    "http://localhost:3030|Admin"
+    "http://localhost:3010|App"
+    "http://localhost:3050|Pro"
+  )
+  
+  for entry in "${URLS[@]}"; do
+    url="${entry%%|*}"
+    name="${entry##*|}"
+    port="${url##*:}"
+    
+    if lsof -ti tcp:"$port" &>/dev/null; then
+      open "$url" 2>/dev/null && echo -e "  ${GREEN}●${NC} $name → $url"
+    else
+      echo -e "  ${RED}○${NC} $name (non démarré)"
+    fi
+  done
+  exit 0
+fi
+
+# Gérer --restart comme option
+if [[ "$ONLY" == "--restart" ]]; then
+  ONLY="only"
+fi
+
+# === Validation du mode ===
+VALID_MODES="main all shared admin app api pro pdf"
+if ! echo "$VALID_MODES" | grep -qw "$MODE"; then
+  echo -e "${RED}❌ Mode invalide: $MODE${NC}"
+  show_help
+fi
+
+# === Fonctions utilitaires ===
+
+# Libère un port s'il est utilisé
+free_port() {
+  local port=$1
+  local pid=$(lsof -ti tcp:"$port" 2>/dev/null)
+  [[ -n "$pid" ]] && kill -9 "$pid" 2>/dev/null
+}
+
+# Lance une commande dans un pane tmux
+run_in_pane() {
+  local pane=$1
+  local dir=$2
+  local cmd=$3
+  local port=$4
+
+  free_port "$port"
+  tmux send-keys -t "$pane" "cd $dir && $cmd" Enter
+}
+
+# Stop un pane (Ctrl+C + clear)
+stop_pane() {
+  local pane=$1
+  tmux send-keys -t "$pane" C-c 2>/dev/null
+  sleep 0.1
+  tmux send-keys -t "$pane" "clear" Enter 2>/dev/null
+}
+
+# === Détection changement de mode ===
+MODE_CHANGED="false"
+if [[ -f "$LAST_MODE_FILE" ]]; then
+  [[ "$(cat "$LAST_MODE_FILE" 2>/dev/null)" != "$MODE" ]] && MODE_CHANGED="true"
+fi
+echo "$MODE" > "$LAST_MODE_FILE"
+
+# === Gestion des sessions ===
+CURRENT_SESSION=$(tmux display-message -p '#S' 2>/dev/null)
+
+# Mode "only" : nettoyer les autres sessions
+if [[ "$ONLY" == "only" ]]; then
+  echo -e "${YELLOW}🛡️  Mode exclusif${NC}"
+  for sess in $(tmux list-sessions -F '#S' 2>/dev/null | grep -v "^$SESSION_NAME$"); do
+    tmux kill-session -t "$sess" 2>/dev/null
+  done
+fi
+
+# Créer ou rejoindre la session
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+  tmux switch-client -t "$SESSION_NAME" 2>/dev/null || true
+else
+  tmux new-session -s "$SESSION_NAME" -d -n work
+  tmux switch-client -t "$SESSION_NAME" 2>/dev/null || true
+fi
+
+# Forcer redémarrage si "only" ou changement de mode
+FORCE_RESTART="false"
+[[ "$ONLY" == "only" || "$MODE_CHANGED" == "true" ]] && FORCE_RESTART="true"
+
+# === Layouts par mode ===
+
+setup_main() {
+  # 4 panes : API | Admin | App | Pro
+  local win="$SESSION_NAME:work"
+  local current_panes=$(tmux list-panes -t "$win" 2>/dev/null | wc -l | tr -d ' ')
+  
+  # Recréer les panes si pas le bon nombre ou force restart
+  if [[ "$FORCE_RESTART" == "true" || "$current_panes" != "4" ]]; then
+    # Garder un seul pane
+    while [[ $(tmux list-panes -t "$win" 2>/dev/null | wc -l) -gt 1 ]]; do
+      tmux kill-pane -t "$win.1" 2>/dev/null || break
+    done
+    
+    # Créer le layout 2x2
+    tmux split-window -h -t "$win"
+    tmux split-window -v -t "$win.0"
+    tmux split-window -v -t "$win.2"
+    tmux select-layout -t "$win" tiled
   fi
-fi
+  
+  sleep 0.3
+  local panes=($(tmux list-panes -t "$win" -F '#{pane_id}'))
+  
+  run_in_pane "${panes[0]}" "api" "sbt run" 9000
+  run_in_pane "${panes[1]}" "admin" "yarn start" 3030
+  run_in_pane "${panes[2]}" "app" "yarn start" 3010
+  run_in_pane "${panes[3]}" "pro" "yarn start" 3050
+  
+  echo -e "${GREEN}✓${NC} API + Admin + App + Pro"
+}
 
-# === SHARED uniquement : 1 seul panneau ===
-if [[ "$MODE" == "shared" ]]; then
-  send_if_absent "$SESSION_NAME:work.0" "yarn start:local" 'cd shared && yarn start:local' 61000
-fi
-
-if [[ "$MODE" == "admin" ]]; then
-  send_if_absent "$SESSION_NAME:work.0" "yarn start" 'cd admin && yarn start' 3030
-  tmux split-window -v -t "$SESSION_NAME:work.0"
-  sleep 0.2
-  send_if_absent "$SESSION_NAME:work.1" "sbt run" 'cd api && sbt run' 9000
-fi
-
-if [[ "$MODE" == "app" ]]; then
-  send_if_absent "$SESSION_NAME:work.0" "yarn start" 'cd app && yarn start' 3010
-  tmux split-window -v -t "$SESSION_NAME:work.0"
-  sleep 0.2
-  send_if_absent "$SESSION_NAME:work.1" "sbt run" 'cd api && sbt run' 9000
-fi
-
-if [[ "$MODE" == "api" ]]; then
-  send_if_absent "$SESSION_NAME:work.0" "sbt run" 'cd api && sbt run' 9000
-  tmux split-window -v -t "$SESSION_NAME:work.0"
-  sleep 0.2
-  send_if_absent "$SESSION_NAME:work.1" "sbt run" 'cd api && sbt run' 9000
+setup_all() {
+  # 6 panes : API | Admin | App | Pro | PDF | Shared
+  local win="$SESSION_NAME:work"
+  local current_panes=$(tmux list-panes -t "$win" 2>/dev/null | wc -l | tr -d ' ')
+  
+  # Recréer les panes si pas le bon nombre ou force restart
+  if [[ "$FORCE_RESTART" == "true" || "$current_panes" != "6" ]]; then
+    while [[ $(tmux list-panes -t "$win" 2>/dev/null | wc -l) -gt 1 ]]; do
+      tmux kill-pane -t "$win.1" 2>/dev/null || break
+    done
+    
+    # Layout 3x2
+    tmux split-window -h -t "$win"
+    tmux split-window -h -t "$win"
+    tmux split-window -v -t "$win.0"
+    tmux split-window -v -t "$win.2"
+    tmux split-window -v -t "$win.4"
+    tmux select-layout -t "$win" tiled
   fi
+  
+  sleep 0.3
+  local panes=($(tmux list-panes -t "$win" -F '#{pane_id}'))
+  
+  run_in_pane "${panes[0]}" "api" "sbt run" 9000
+  run_in_pane "${panes[1]}" "admin" "yarn start" 3030
+  run_in_pane "${panes[2]}" "app" "yarn start" 3010
+  run_in_pane "${panes[3]}" "pro" "yarn start" 3050
+  run_in_pane "${panes[4]}" "pdf-service" "yarn start" 4999
+  run_in_pane "${panes[5]}" "shared" "yarn start:local" 61000
+  
+  echo -e "${GREEN}✓${NC} Tous les services (6)"
+}
 
-if [[ "$MODE" == "pro" ]]; then
-  send_if_absent "$SESSION_NAME:work.0" "yarn start" 'cd pro && yarn start' 3050
-  tmux split-window -v -t "$SESSION_NAME:work.0"
+setup_dual() {
+  # 2 panes : Service + API
+  local service=$1
+  local dir=$2
+  local cmd=$3
+  local port=$4
+  local win="$SESSION_NAME:work"
+  local current_panes=$(tmux list-panes -t "$win" 2>/dev/null | wc -l | tr -d ' ')
+  
+  # Recréer si pas 2 panes ou force restart
+  if [[ "$FORCE_RESTART" == "true" || "$current_panes" != "2" ]]; then
+    while [[ $(tmux list-panes -t "$win" 2>/dev/null | wc -l) -gt 1 ]]; do
+      tmux kill-pane -t "$win.1" 2>/dev/null || break
+    done
+    tmux split-window -v -t "$win"
+  fi
+  
   sleep 0.2
-  send_if_absent "$SESSION_NAME:work.1" "sbt run" 'cd api && sbt run' 9000
-fi
+  local panes=($(tmux list-panes -t "$win" -F '#{pane_id}'))
+  
+  run_in_pane "${panes[0]}" "$dir" "$cmd" "$port"
+  run_in_pane "${panes[1]}" "api" "sbt run" 9000
+  
+  echo -e "${GREEN}✓${NC} $service + API"
+}
 
-if [[ "$MODE" == "pdf" ]]; then
-  send_if_absent "$SESSION_NAME:work.0" "yarn start" 'cd pdf-service && yarn start' 4999
-  tmux split-window -v -t "$SESSION_NAME:work.0"
-  sleep 0.2
-  send_if_absent "$SESSION_NAME:work.1" "sbt run" 'cd api && sbt run' 9000
-fi
+setup_single() {
+  # 1 pane seul
+  local service=$1
+  local dir=$2
+  local cmd=$3
+  local port=$4
+  local win="$SESSION_NAME:work"
+  
+  if [[ "$FORCE_RESTART" == "true" ]]; then
+    while [[ $(tmux list-panes -t "$win" 2>/dev/null | wc -l) -gt 1 ]]; do
+      tmux kill-pane -t "$win.1" 2>/dev/null || break
+    done
+  fi
+  
+  local panes=($(tmux list-panes -t "$win" -F '#{pane_id}'))
+  run_in_pane "${panes[0]}" "$dir" "$cmd" "$port"
+  
+  echo -e "${GREEN}✓${NC} $service"
+}
 
+# === Exécution selon le mode ===
+echo -e "${BLUE}🚀 Démarrage: ${BOLD}$MODE${NC}"
 
-# === Deuxième fenêtre : z et nvim ===
-if ! tmux list-windows -t "$SESSION_NAME" | grep -q "others"; then
+case "$MODE" in
+  main)   setup_main ;;
+  all)    setup_all ;;
+  admin)  setup_dual "Admin" "admin" "yarn start" 3030 ;;
+  app)    setup_dual "App" "app" "yarn start" 3010 ;;
+  pro)    setup_dual "Pro" "pro" "yarn start" 3050 ;;
+  pdf)    setup_dual "PDF" "pdf-service" "yarn start" 4999 ;;
+  api)    setup_single "API" "api" "sbt run" 9000 ;;
+  shared) setup_single "Shared" "shared" "yarn start:local" 61000 ;;
+esac
+
+# === Fenêtre "others" (terminal + nvim) ===
+if ! tmux list-windows -t "$SESSION_NAME" 2>/dev/null | grep -q "others"; then
   tmux new-window -t "$SESSION_NAME" -n others
-  tmux send-keys -t "$SESSION_NAME:others" 'z' Enter
+  tmux send-keys -t "$SESSION_NAME:others" 'cd .' Enter
   tmux split-window -v -t "$SESSION_NAME:others"
   tmux send-keys -t "$SESSION_NAME:others.1" 'nvim' Enter
 fi
 
-# Revenir à la fenêtre principale
+# Revenir à work
 tmux select-window -t "$SESSION_NAME:work"
 
-# Attacher uniquement si on n'est pas déjà dans tmux
-if [[ -z $TMUX ]]; then
-  tmux attach -t "$SESSION_NAME"
-fi
+# Attacher si pas déjà dans tmux
+[[ -z "$TMUX" ]] && tmux attach -t "$SESSION_NAME"
 
-# === Résumé concis ===
-if [ ${#restarted_services[@]} -gt 0 ]; then
-  echo "✅ Services ($MODE): ${#restarted_services[@]} service(s) lancé(s)"
-fi
+# Calculer le temps écoulé
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+
+echo -e "${GREEN}✅ Session ${BOLD}$SESSION_NAME${NC}${GREEN} prête${NC} ${CYAN}⏱️ ${DURATION}s${NC}"

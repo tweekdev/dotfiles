@@ -14,12 +14,18 @@ FAILURE_COUNT=0
 COVERAGE_SUMMARY=""
 TESTS_SUMMARY=""
 ERRORS_SUMMARY=""
+START_TIME=$(date +%s)
 
 # Options de configuration
 VERBOSE="false"
 RUN_TESTS="true"
 RUN_LINT="true"
 RUN_TYPECHECK="true"
+PARALLEL="false"
+MAX_PARALLEL=2  # Nombre max de processus en parallèle (évite de saturer la RAM)
+WITH_COVERAGE="false"  # Coverage désactivé par défaut (coûteux)
+ONLY_CHANGED="false"   # Ne teste que les fichiers modifiés
+TURBO_MODE="false"     # Mode turbo : max performance
 SPECIFIC_APPS=()
 
 # Couleurs pour l'affichage
@@ -37,6 +43,9 @@ function show_help {
   echo "  Lance les tests, lint et typecheck sur les applications du projet."
   echo ""
   echo -e "${BOLD}Options:${NC}"
+  echo -e "  ${GREEN}--turbo${NC}           Mode turbo : parallèle + max workers (utilise 100% CPU)"
+  echo -e "  ${GREEN}--parallel${NC}        Lance les apps en parallèle (2 à la fois par défaut)"
+  echo -e "  ${GREEN}--jobs N${NC}          Nombre d'apps en parallèle (défaut: 2, turbo: 3)"
   echo -e "  ${GREEN}--verbose${NC}         Affiche les sorties en temps réel"
   echo -e "  ${GREEN}--no-tests${NC}        Désactive les tests unitaires"
   echo -e "  ${GREEN}--no-lint${NC}         Désactive le lint"
@@ -44,16 +53,19 @@ function show_help {
   echo -e "  ${GREEN}--only-lint${NC}       Lance uniquement le lint"
   echo -e "  ${GREEN}--only-typecheck${NC}  Lance uniquement le typecheck"
   echo -e "  ${GREEN}--only-tests${NC}      Lance uniquement les tests"
+  echo -e "  ${GREEN}--changed${NC}         Teste uniquement les fichiers modifiés (très rapide)"
+  echo -e "  ${GREEN}--coverage${NC}        Active la couverture de code (désactivé par défaut)"
   echo -e "  ${GREEN}--help${NC}            Affiche cette aide"
   echo ""
   echo -e "${BOLD}Applications disponibles:${NC} ${CYAN}${APPS[*]}${NC}"
   echo ""
   echo -e "${BOLD}Exemples:${NC}"
-  echo -e "  ${YELLOW}$0${NC}                        # Tout vérifier sur toutes les apps"
-  echo -e "  ${YELLOW}$0 pro admin${NC}              # Vérifier uniquement pro et admin"
-  echo -e "  ${YELLOW}$0 --only-lint${NC}            # Lint uniquement"
-  echo -e "  ${YELLOW}$0 --no-tests shared${NC}      # Lint + typecheck sur shared"
-  echo -e "  ${YELLOW}$0 --verbose pro${NC}          # Vérifier pro avec sortie détaillée"
+  echo -e "  ${YELLOW}$0 --turbo${NC}                        # MAX PERF : 3 jobs + 75% workers"
+  echo -e "  ${YELLOW}$0 --turbo --changed${NC}              # Turbo sur fichiers modifiés"
+  echo -e "  ${YELLOW}$0 --parallel${NC}                     # Rapide : 2 jobs + 50% workers"
+  echo -e "  ${YELLOW}$0 --parallel --changed${NC}           # Tests modifiés uniquement"
+  echo -e "  ${YELLOW}$0 --parallel --only-lint${NC}         # Lint uniquement (très rapide)"
+  echo -e "  ${YELLOW}$0 --parallel --coverage${NC}          # Avec couverture (CI)"
   exit 0
 }
 
@@ -61,6 +73,26 @@ function show_help {
 POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --turbo)
+      TURBO_MODE="true"
+      PARALLEL="true"
+      MAX_PARALLEL=3  # Plus agressif en turbo
+      shift
+      ;;
+    --parallel)
+      PARALLEL="true"
+      shift
+      ;;
+    --jobs)
+      shift
+      if [[ $# -gt 0 && "$1" =~ ^[0-9]+$ ]]; then
+        MAX_PARALLEL="$1"
+        shift
+      else
+        echo "❌ --jobs nécessite un nombre (ex: --jobs 2)"
+        exit 1
+      fi
+      ;;
     --verbose)
       VERBOSE="true"
       shift
@@ -95,6 +127,14 @@ while [[ $# -gt 0 ]]; do
       RUN_TYPECHECK="false"
       shift
       ;;
+    --coverage)
+      WITH_COVERAGE="true"
+      shift
+      ;;
+    --changed)
+      ONLY_CHANGED="true"
+      shift
+      ;;
     --help)
       show_help
       ;;
@@ -121,12 +161,22 @@ ACTIVE_CHECKS=()
 [[ "$RUN_LINT" == "true" ]] && ACTIVE_CHECKS+=("lint")
 [[ "$RUN_TYPECHECK" == "true" ]] && ACTIVE_CHECKS+=("typecheck")
 
+# Désactiver verbose si parallel (incompatible)
+if [[ "$PARALLEL" == "true" && "$VERBOSE" == "true" ]]; then
+  echo "⚠️  --parallel et --verbose sont incompatibles, verbose ignoré"
+  VERBOSE="false"
+fi
+
 # Affichage du résumé de ce qui va être exécuté
 echo ""
 echo "📋 Configuration :"
 echo "   Apps    : ${APPS[*]}"
 echo "   Checks  : ${ACTIVE_CHECKS[*]}"
+[[ "$TURBO_MODE" == "true" ]] && echo "   Mode    : TURBO 🚀 ($MAX_PARALLEL jobs, 75% workers)"
+[[ "$PARALLEL" == "true" && "$TURBO_MODE" == "false" ]] && echo "   Mode    : parallèle ⚡ ($MAX_PARALLEL jobs)"
 [[ "$VERBOSE" == "true" ]] && echo "   Mode    : verbose"
+[[ "$ONLY_CHANGED" == "true" && "$RUN_TESTS" == "true" ]] && echo "   Tests   : fichiers modifiés uniquement"
+[[ "$WITH_COVERAGE" == "true" && "$RUN_TESTS" == "true" ]] && echo "   Coverage: activée"
 echo ""
 
 # Fonction pour extraire et formater la couverture
@@ -170,9 +220,21 @@ function extract_coverage {
 # Fonction pour afficher le résumé final
 function print_summary {
   local total=$((SUCCESS_COUNT + FAILURE_COUNT))
+  local end_time=$(date +%s)
+  local duration=$((end_time - START_TIME))
+  local minutes=$((duration / 60))
+  local seconds=$((duration % 60))
+  
+  # Formater le temps
+  local time_str
+  if [[ $minutes -gt 0 ]]; then
+    time_str="${minutes}m ${seconds}s"
+  else
+    time_str="${seconds}s"
+  fi
   
   echo -e "\n============================="
-  echo -e "📊 Résumé : $SUCCESS_COUNT/$total apps OK"
+  echo -e "📊 Résumé : $SUCCESS_COUNT/$total apps OK  ⏱️  $time_str"
   echo -e "============================="
   printf "%b" "$RESULTS"
   
@@ -182,8 +244,8 @@ function print_summary {
     printf "%b" "$TESTS_SUMMARY"
   fi
   
-  # Afficher la couverture uniquement si les tests ont été lancés et qu'il y a des données
-  if [[ "$RUN_TESTS" == "true" && -n "$COVERAGE_SUMMARY" ]]; then
+  # Afficher la couverture uniquement si activée et qu'il y a des données
+  if [[ "$WITH_COVERAGE" == "true" && -n "$COVERAGE_SUMMARY" ]]; then
     echo -e "\n📈 Couverture :"
     printf "%b" "$COVERAGE_SUMMARY"
   fi
@@ -365,6 +427,90 @@ HAS_ERROR=0
 # Variable pour indiquer si on a fini l'exécution
 EXECUTION_DONE=0
 
+# Répertoire temporaire pour les résultats en mode parallèle
+TEMP_DIR=$(mktemp -d)
+
+# Fonction pour exécuter les checks sur une app
+function run_app_checks {
+  local APP="$1"
+  local RESULT_FILE="$TEMP_DIR/${APP}.result"
+  local OUTPUT_FILE="$TEMP_DIR/${APP}.output"
+  
+  # Initialiser le fichier de résultat
+  echo "APP=$APP" > "$RESULT_FILE"
+  
+  pushd "$APP" > /dev/null 2>&1 || { 
+    echo "STATUS=error" >> "$RESULT_FILE"
+    echo "MESSAGE=Dossier introuvable" >> "$RESULT_FILE"
+    return 1
+  }
+
+  # Construction de la commande
+  local CMD=""
+  
+  if [[ "$APP" == "pdf-service" ]]; then
+    if [[ "$RUN_LINT" == "true" ]] && [ -f "package.json" ] && grep -q "\"lint\"" package.json; then
+      CMD+="yarn lint --fix"
+    fi
+    if [[ "$RUN_TYPECHECK" == "true" ]]; then
+      [[ -n "$CMD" ]] && CMD+=" && "
+      CMD+="yarn typecheck"
+    fi
+  else
+    if [[ "$RUN_TESTS" == "true" ]]; then
+      CMD+="yarn test:ci"
+      # Turbo = max workers, sinon 50% pour laisser de la place aux autres apps
+      if [[ "$TURBO_MODE" == "true" ]]; then
+        CMD+=" --maxWorkers=75%"
+      else
+        CMD+=" --maxWorkers=50%"
+      fi
+      [[ "$ONLY_CHANGED" == "true" ]] && CMD+=" --onlyChanged"
+      [[ "$WITH_COVERAGE" == "true" ]] && CMD+=" --coverage"
+    fi
+    if [[ "$RUN_LINT" == "true" ]]; then
+      [[ -n "$CMD" ]] && CMD+=" && "
+      CMD+="yarn lint --cache --fix"
+    fi
+    if [[ "$RUN_TYPECHECK" == "true" ]]; then
+      [[ -n "$CMD" ]] && CMD+=" && "
+      CMD+="yarn typecheck"
+    fi
+  fi
+  
+  if [[ -z "$CMD" ]]; then
+    echo "STATUS=skipped" >> "$RESULT_FILE"
+    popd > /dev/null
+    return 0
+  fi
+
+  # Exécuter la commande
+  local OUTPUT
+  OUTPUT=$(bash -c "$CMD" 2>&1)
+  local EXIT_CODE=$?
+  echo "$OUTPUT" > "$OUTPUT_FILE"
+  
+  if [[ $EXIT_CODE -eq 0 ]]; then
+    echo "STATUS=success" >> "$RESULT_FILE"
+  else
+    echo "STATUS=failed" >> "$RESULT_FILE"
+  fi
+  
+  # Extraire stats de tests si applicable
+  if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" ]]; then
+    local TEST_SUITES=$(echo "$OUTPUT" | grep -E "^Test Suites:" | head -1 || echo "")
+    local TEST_STATS=$(echo "$OUTPUT" | grep -E "^Tests:" | head -1 || echo "")
+    [[ -z "$TEST_SUITES" ]] && TEST_SUITES=$(echo "$OUTPUT" | grep -E "Test Suites:" | head -1 || echo "")
+    [[ -z "$TEST_STATS" ]] && TEST_STATS=$(echo "$OUTPUT" | grep -E "Tests:" | head -1 || echo "")
+    # Quoter les valeurs pour éviter les problèmes avec les caractères spéciaux
+    printf 'TEST_SUITES=%q\n' "$TEST_SUITES" >> "$RESULT_FILE"
+    printf 'TEST_STATS=%q\n' "$TEST_STATS" >> "$RESULT_FILE"
+  fi
+
+  popd > /dev/null
+  return $EXIT_CODE
+}
+
 # Définir une fonction pour capturer tous les signaux de sortie
 function cleanup_and_exit {
   # Si on a déjà terminé l'exécution, ne rien faire
@@ -401,112 +547,196 @@ function cleanup_and_exit {
 # Une fonction intermédiaire pour les traps
 function exit_trap {
   cleanup_and_exit
+  # Nettoyer le répertoire temporaire
+  [[ -d "$TEMP_DIR" ]] && rm -rf "$TEMP_DIR"
 }
 
 # Définir les traps pour capturer toutes les façons de sortir du script
 trap exit_trap EXIT INT TERM
 
 # Exécution des checks
-for APP in "${APPS[@]}"; do
-  echo -e "🔄 $APP..."
-  pushd "$APP" > /dev/null || { echo "❌ $APP: Dossier introuvable"; RESULTS+="$APP: ❌ Dossier introuvable"$'\n'; FAILURE_COUNT=$((FAILURE_COUNT + 1)); HAS_ERROR=1; continue; }
-
-  # Construction de la commande en fonction des options
-  CMD=""
+if [[ "$PARALLEL" == "true" ]]; then
+  # Mode parallèle : lancer les apps par lots de MAX_PARALLEL
+  echo "⚡ Lancement en parallèle ($MAX_PARALLEL à la fois)..."
   
-  if [[ "$APP" == "pdf-service" ]]; then
-    # Cas spécial pour pdf-service qui n'a pas de tests
-    if [[ "$RUN_LINT" == "true" ]] && [ -f "package.json" ] && grep -q "\"lint\"" package.json; then
-      CMD+="yarn lint --fix"
-    fi
-    
-    if [[ "$RUN_TYPECHECK" == "true" ]]; then
-      [[ -n "$CMD" ]] && CMD+="&& "
-      CMD+="yarn typecheck"
-    fi
-  else
-    # Pour les autres applications
-    if [[ "$RUN_TESTS" == "true" ]]; then
-      CMD+="yarn test:ci --coverage"
-    fi
-    
-    if [[ "$RUN_LINT" == "true" ]]; then
-      [[ -n "$CMD" ]] && CMD+="&& "
-      CMD+="yarn lint --fix"
-    fi
-    
-    if [[ "$RUN_TYPECHECK" == "true" ]]; then
-      [[ -n "$CMD" ]] && CMD+="&& "
-      CMD+="yarn typecheck"
-    fi
-  fi
+  RUNNING_PIDS=()
+  RUNNING_APPS=()
   
-  # Si aucune commande n'est configurée, on saute cette application mais on l'enregistre comme succès
-  if [[ -z "$CMD" ]]; then
-    echo "⏭️ $APP: Aucun check configuré"
-    RESULTS+="$APP: ⏭️ Ignoré"$'\n'
-    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-    popd > /dev/null
-    continue
-  fi
-
-  if [[ "$VERBOSE" == "true" ]]; then
-    echo -e "\n🔍 Exécution de la commande : $CMD"
-    # En mode verbose, exécute et capture la sortie en même temps (tee)
-    set +e
-    OUTPUT=$(bash -c "$CMD" 2>&1 | tee /dev/tty)
-    EXIT_CODE=${PIPESTATUS[0]}
-  else
-    # En mode non-verbose, capture la sortie dans une variable
-    # Désactiver temporairement l'arrêt sur erreur
-    set +e
-    OUTPUT=$(bash -c "$CMD" 2>&1)
-    EXIT_CODE=$?
-    # Ne pas réactiver l'arrêt sur erreur ici car nous voulons continuer même en cas d'erreur
-    if [[ $EXIT_CODE -eq 0 ]]; then
-      echo -e "✅ $APP: OK"
-    else
-      echo -e "❌ $APP: Échec"
-    fi
-  fi
-
-  # Extraire le nombre de tests (uniquement si les tests ont été lancés)
-  TEST_STATS=""
-  TEST_SUITES=""
-  if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" ]]; then
-    TEST_SUITES=$(echo "$OUTPUT" | grep -E "^Test Suites:" | head -1 || echo "")
-    TEST_STATS=$(echo "$OUTPUT" | grep -E "^Tests:" | head -1 || echo "")
+  for APP in "${APPS[@]}"; do
+    # Lancer l'app en background
+    run_app_checks "$APP" &
+    RUNNING_PIDS+=($!)
+    RUNNING_APPS+=("$APP")
+    echo "   ▶ $APP lancé"
     
-    # Pattern plus général si rien trouvé
-    if [[ -z "$TEST_SUITES" && -z "$TEST_STATS" ]]; then
-      TEST_SUITES=$(echo "$OUTPUT" | grep -E "Test Suites:" | head -1 || echo "")
-      TEST_STATS=$(echo "$OUTPUT" | grep -E "Tests:" | head -1 || echo "")
-    fi
-  fi
+    # Si on atteint MAX_PARALLEL, attendre qu'un processus se termine
+    while [[ ${#RUNNING_PIDS[@]} -ge $MAX_PARALLEL ]]; do
+      # Attendre n'importe quel processus
+      wait -n 2>/dev/null || true
+      
+      # Nettoyer les PIDs terminés
+      NEW_PIDS=()
+      NEW_APPS=()
+      for i in "${!RUNNING_PIDS[@]}"; do
+        if kill -0 "${RUNNING_PIDS[$i]}" 2>/dev/null; then
+          NEW_PIDS+=("${RUNNING_PIDS[$i]}")
+          NEW_APPS+=("${RUNNING_APPS[$i]}")
+        fi
+      done
+      # Réassigner (gérer le cas où les tableaux sont vides)
+      if [[ ${#NEW_PIDS[@]} -gt 0 ]]; then
+        RUNNING_PIDS=("${NEW_PIDS[@]}")
+        RUNNING_APPS=("${NEW_APPS[@]}")
+      else
+        RUNNING_PIDS=()
+        RUNNING_APPS=()
+      fi
+    done
+  done
   
-  if [[ $EXIT_CODE -eq 0 ]]; then
-    RESULTS+="  ✅ $APP"$'\n'
-    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-  else
-    RESULTS+="  ❌ $APP"$'\n'
-    FAILURE_COUNT=$((FAILURE_COUNT + 1))
-    HAS_ERROR=1
+  # Attendre les derniers processus
+  for PID in "${RUNNING_PIDS[@]}"; do
+    wait "$PID" 2>/dev/null || true
+  done
+  
+  # Collecter les résultats
+  for APP in "${APPS[@]}"; do
+    RESULT_FILE="$TEMP_DIR/${APP}.result"
+    OUTPUT_FILE="$TEMP_DIR/${APP}.output"
     
-    # Enregistrer les erreurs pour le résumé
-    verbose_output "$APP" "$OUTPUT"
-  fi
-  
-  # Collecter stats de tests et couverture (si tests lancés et pas pdf-service)
-  if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" ]]; then
-    if [[ -n "$TEST_STATS" ]]; then
-      TESTS_SUMMARY+="  $APP : $TEST_STATS"$'\n'
+    if [[ ! -f "$RESULT_FILE" ]]; then
+      RESULTS+="  ❌ $APP (pas de résultat)"$'\n'
+      FAILURE_COUNT=$((FAILURE_COUNT + 1))
+      HAS_ERROR=1
+      continue
+    fi
+    
+    # Initialiser les variables avant source (évite unbound variable)
+    TEST_STATS=""
+    TEST_SUITES=""
+    STATUS=""
+    MESSAGE=""
+    
+    source "$RESULT_FILE"
+    
+    case "$STATUS" in
+      success)
+        echo -e "✅ $APP: OK"
+        RESULTS+="  ✅ $APP"$'\n'
+        SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+        ;;
+      failed)
+        echo -e "❌ $APP: Échec"
+        RESULTS+="  ❌ $APP"$'\n'
+        FAILURE_COUNT=$((FAILURE_COUNT + 1))
+        HAS_ERROR=1
+        [[ -f "$OUTPUT_FILE" ]] && verbose_output "$APP" "$(cat "$OUTPUT_FILE")"
+        ;;
+      skipped)
+        echo -e "⏭️ $APP: Ignoré"
+        RESULTS+="  ⏭️ $APP"$'\n'
+        SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+        ;;
+      error)
+        echo -e "❌ $APP: $MESSAGE"
+        RESULTS+="  ❌ $APP ($MESSAGE)"$'\n'
+        FAILURE_COUNT=$((FAILURE_COUNT + 1))
+        HAS_ERROR=1
+        ;;
+    esac
+    
+    # Collecter stats de tests et couverture
+    if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" && -f "$OUTPUT_FILE" ]]; then
+      [[ -n "$TEST_STATS" ]] && TESTS_SUMMARY+="  $APP : $TEST_STATS"$'\n'
       [[ -n "$TEST_SUITES" ]] && TESTS_SUMMARY+="         $TEST_SUITES"$'\n'
+      [[ "$WITH_COVERAGE" == "true" ]] && extract_coverage "$(cat "$OUTPUT_FILE")" "$APP"
     fi
-    extract_coverage "$OUTPUT" "$APP"
-  fi
+  done
+  
+else
+  # Mode séquentiel (par défaut)
+  for APP in "${APPS[@]}"; do
+    echo -e "🔄 $APP..."
+    pushd "$APP" > /dev/null || { echo "❌ $APP: Dossier introuvable"; RESULTS+="  ❌ $APP (introuvable)"$'\n'; FAILURE_COUNT=$((FAILURE_COUNT + 1)); HAS_ERROR=1; continue; }
 
-  popd > /dev/null || { echo "❌ Erreur de navigation"; continue; }
-done
+    # Construction de la commande
+    CMD=""
+    
+    if [[ "$APP" == "pdf-service" ]]; then
+      if [[ "$RUN_LINT" == "true" ]] && [ -f "package.json" ] && grep -q "\"lint\"" package.json; then
+        CMD+="yarn lint --fix"
+      fi
+      if [[ "$RUN_TYPECHECK" == "true" ]]; then
+        [[ -n "$CMD" ]] && CMD+=" && "
+        CMD+="yarn typecheck"
+      fi
+    else
+      if [[ "$RUN_TESTS" == "true" ]]; then
+        CMD+="yarn test:ci"
+        [[ "$ONLY_CHANGED" == "true" ]] && CMD+=" --onlyChanged"
+        [[ "$WITH_COVERAGE" == "true" ]] && CMD+=" --coverage"
+      fi
+      if [[ "$RUN_LINT" == "true" ]]; then
+        [[ -n "$CMD" ]] && CMD+=" && "
+        CMD+="yarn lint --cache --fix"
+      fi
+      if [[ "$RUN_TYPECHECK" == "true" ]]; then
+        [[ -n "$CMD" ]] && CMD+=" && "
+        CMD+="yarn typecheck"
+      fi
+    fi
+    
+    if [[ -z "$CMD" ]]; then
+      echo "⏭️ $APP: Ignoré"
+      RESULTS+="  ⏭️ $APP"$'\n'
+      SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+      popd > /dev/null
+      continue
+    fi
+
+    if [[ "$VERBOSE" == "true" ]]; then
+      OUTPUT=$(bash -c "$CMD" 2>&1 | tee /dev/tty)
+      EXIT_CODE=${PIPESTATUS[0]}
+    else
+      OUTPUT=$(bash -c "$CMD" 2>&1)
+      EXIT_CODE=$?
+      if [[ $EXIT_CODE -eq 0 ]]; then
+        echo -e "✅ $APP: OK"
+      else
+        echo -e "❌ $APP: Échec"
+      fi
+    fi
+
+    # Extraire stats de tests
+    TEST_STATS=""
+    TEST_SUITES=""
+    if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" ]]; then
+      TEST_SUITES=$(echo "$OUTPUT" | grep -E "^Test Suites:" | head -1 || echo "")
+      TEST_STATS=$(echo "$OUTPUT" | grep -E "^Tests:" | head -1 || echo "")
+      [[ -z "$TEST_SUITES" ]] && TEST_SUITES=$(echo "$OUTPUT" | grep -E "Test Suites:" | head -1 || echo "")
+      [[ -z "$TEST_STATS" ]] && TEST_STATS=$(echo "$OUTPUT" | grep -E "Tests:" | head -1 || echo "")
+    fi
+    
+    if [[ $EXIT_CODE -eq 0 ]]; then
+      RESULTS+="  ✅ $APP"$'\n'
+      SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+    else
+      RESULTS+="  ❌ $APP"$'\n'
+      FAILURE_COUNT=$((FAILURE_COUNT + 1))
+      HAS_ERROR=1
+      verbose_output "$APP" "$OUTPUT"
+    fi
+    
+    # Collecter stats de tests et couverture
+    if [[ "$RUN_TESTS" == "true" && "$APP" != "pdf-service" ]]; then
+      [[ -n "$TEST_STATS" ]] && TESTS_SUMMARY+="  $APP : $TEST_STATS"$'\n'
+      [[ -n "$TEST_SUITES" ]] && TESTS_SUMMARY+="         $TEST_SUITES"$'\n'
+      [[ "$WITH_COVERAGE" == "true" ]] && extract_coverage "$OUTPUT" "$APP"
+    fi
+
+    popd > /dev/null || { echo "❌ Erreur de navigation"; continue; }
+  done
+fi
 
 # Garder l'arrêt sur erreur désactivé pour que le script continue même en cas d'erreur
 # set -e
