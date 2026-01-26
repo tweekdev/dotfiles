@@ -96,7 +96,7 @@ cd dotfiles
 ### Apps manuelles (optionnel)
 
 Ces apps sont commentées dans le Brewfile car souvent déjà installées :
-- Docker Desktop
+#- Docker Desktop
 - Google Chrome  
 - Slack
 

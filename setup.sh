@@ -191,12 +191,12 @@ do_install() {
   section "🔧 Outils supplémentaires"
 
   # Docker
-  if ! command -v docker &>/dev/null && [ ! -d "/Applications/Docker.app" ]; then
-    log "WARN" "Docker non installé"
-    echo -e "    ${GRAY}→ https://www.docker.com/products/docker-desktop/${NC}"
-  else
-    log "SUCCESS" "Docker"
-  fi
+  #if ! command -v docker &>/dev/null && [ ! -d "/Applications/Docker.app" ]; then
+  #  log "WARN" "Docker non installé"
+  #  echo -e "    ${GRAY}→ https://www.docker.com/products/docker-desktop/${NC}"
+  #else
+  #  log "SUCCESS" "Docker"
+  #fi
 
   # NVM + Node.js
   export NVM_DIR="$HOME/.nvm"

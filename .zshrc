@@ -272,6 +272,16 @@ alias fuckdocker='docker run -p 5432:5432 --name hemea-db --restart=always -e PO
 alias itdb="docker run -p 5431:5432 --name integration-test-db --restart=always -e POSTGRES_USER=play -e POSTGRES_DB=travauxlib-test -e POSTGRES_PASSWORD=play -d postgres &"
 
 # ============================================
+# Container
+# ============================================
+alias c='container'
+alias ck='container kill'
+alias ckl='container kill all'
+alias ckll='container kill all'
+alias cl='container list'
+alias cs='container system start'
+
+# ============================================
 # DB connect aliases
 # ============================================
 alias dbprod='cd ~/Developer/travauxlib/scripts && ./db_connect.js prod'

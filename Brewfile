@@ -88,7 +88,7 @@ cask "sf-symbols"
 # Apps to install manually (not managed by brew)
 # Uncomment on a fresh Mac if you want brew to install them
 # -----------------
-cask "docker-desktop"
+#cask "docker-desktop"
 cask "slack"
 cask "google-chrome"
 
