@@ -38,6 +38,7 @@ brew "gnu-tar"
 brew "pigz"
 brew "sesh"
 brew "nvm"
+brew "container"
 
 # -----------------
 # CLI Tools - Utilities
