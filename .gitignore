@@ -38,3 +38,6 @@ vscode/User/
 package-lock.json
 yarn.lock
 
+# Raycast (peut contenir des données sensibles)
+raycast/*.rayconfig
+

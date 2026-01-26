@@ -82,7 +82,7 @@ cd dotfiles
 
 | Catégorie | Outils |
 |-----------|--------|
-| **Terminal** | Ghostty, tmux, starship |
+| **Terminal** | Ghostty, tmux, starship, sesh |
 | **Éditeurs** | Neovim, Cursor, VS Code |
 | **Dev Tools** | git, gh, lazygit, fzf, ripgrep |
 | **Node.js** | nvm, yarn (via npm) |
@@ -90,7 +90,8 @@ cd dotfiles
 | **Shell** | zsh, Oh My Zsh, zsh-autosuggestions, zsh-syntax-highlighting |
 | **Utilitaires** | bat, eza, zoxide, jq, fd, entr |
 | **Cloud** | AWS CLI, Google Cloud SDK |
-| **Apps** | Raycast, Zen Browser |
+| **Fonts** | JetBrains Mono, Fira Code, Hack (Nerd Fonts) |
+| **Apps** | Raycast, Ghostty, Zen Browser |
 
 ### Apps manuelles (optionnel)
 
@@ -106,7 +107,7 @@ brew bundle --file=~/.config/dotfiles/Brewfile
 
 ---
 
-## 🔗 Symlinks créés
+## 🔗 Symlinks & Dossiers créés
 
 ```
 ~/.zshrc              → dotfiles/.zshrc
@@ -121,6 +122,7 @@ brew bundle --file=~/.config/dotfiles/Brewfile
 ~/.config/ghostty/    → dotfiles/ghostty/
 ~/.config/starship.toml → dotfiles/starship.toml
 ~/Pictures/Wallpapers/  ← dotfiles/wallpapers/ (copie)
+~/Developer/          ← créé automatiquement
 ```
 
 ---
@@ -204,12 +206,17 @@ brewdump        # ou: brew bundle dump --force --file=~/.config/dotfiles/Brewfil
 ├── Brewfile            # Packages Homebrew
 ├── starship.toml       # Prompt Starship
 ├── setup.sh            # Script d'installation
+├── install.sh          # One-liner pour nouveau Mac
+├── macos-defaults.sh   # Préférences macOS
 ├── maintain.sh         # Script de maintenance
 ├── cursor/             # Config Cursor IDE
 ├── vscode/             # Config VS Code
 ├── nvim/               # Config Neovim (LazyVim)
+├── ghostty/            # Config Ghostty terminal
 ├── sesh/               # Sessions Tmux
 ├── git/                # Templates Git
+├── wallpapers/         # Wallpapers (Git LFS)
+├── raycast/            # Config Raycast (export manuel)
 └── scripts/            # Scripts utilitaires
 ```
 
@@ -234,16 +241,33 @@ npm update -g                  # npm global packages
 Configurer les préférences système macOS (Dock, Finder, Keyboard, etc.) :
 
 ```bash
-./macos-defaults.sh
+./macos-defaults.sh              # Appliquer les préférences
+./macos-defaults.sh --check      # Voir les valeurs actuelles
+./macos-defaults.sh --dry-run    # Simuler sans appliquer
 ```
 
 Ce script configure :
-- Clavier rapide (répétition des touches)
-- Dock auto-hide avec animations rapides
-- Finder avec barre de chemin et extensions
-- Screenshots dans ~/Pictures/Screenshots
-- Trackpad tap-to-click
-- Et plus...
+- **Clavier** : répétition rapide, navigation Tab complète
+- **Dock** : auto-hide, animations rapides, pas d'apps récentes
+- **Finder** : fichiers cachés, extensions, dossiers en haut, barre de chemin
+- **Trackpad** : tap-to-click, three finger drag
+- **Screenshots** : PNG dans ~/Pictures/Screenshots, sans ombre
+- **Mission Control** : Spaces non réorganisés automatiquement
+- **Time Machine** : pas de popup pour nouveaux disques
+
+---
+
+## 🚀 Raycast
+
+Raycast ne peut pas être exporté automatiquement. Pour sauvegarder ta config :
+
+1. Ouvre Raycast (⌘ + Space)
+2. Tape "Export" → "Export Settings & Data"
+3. Sauvegarde dans `~/.config/dotfiles/raycast/`
+
+Pour importer sur un nouveau Mac :
+1. Tape "Import" → "Import Settings & Data"
+2. Sélectionne le fichier `.rayconfig`
 
 ---
 
@@ -269,3 +293,5 @@ git pull
 - **Idempotent** : Le script peut être exécuté plusieurs fois sans problème
 - **Apple Silicon** : Optimisé pour les Mac M1/M2/M3
 - **Git config** : Ton nom/email sont dans `.gitconfig`, pas besoin de les reconfigurer
+- **Git LFS** : Les wallpapers sont gérés via Git LFS (installé automatiquement)
+- **Safari** : Préférences à configurer manuellement (sandboxé par macOS)

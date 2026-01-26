@@ -58,23 +58,7 @@ if $CHECK_MODE; then
   echo -e "${BLUE}📋 Valeurs actuelles des préférences macOS${NC}"
   echo ""
   
-  echo -e "${YELLOW}[Général]${NC}"
-  read_default NSGlobalDomain NSNavPanelExpandedStateForSaveMode
-  read_default NSGlobalDomain NSDocumentSaveNewDocumentsToCloud
-  read_default com.apple.LaunchServices LSQuarantine
-  
-  echo -e "\n${YELLOW}[Clavier]${NC}"
-  read_default NSGlobalDomain KeyRepeat
-  read_default NSGlobalDomain InitialKeyRepeat
-  read_default NSGlobalDomain NSAutomaticSpellingCorrectionEnabled
-  read_default NSGlobalDomain ApplePressAndHoldEnabled
-  read_default NSGlobalDomain AppleKeyboardUIMode
-  
-  echo -e "\n${YELLOW}[Trackpad]${NC}"
-  read_default com.apple.AppleMultitouchTrackpad Clicking
-  read_default com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag
-  
-  echo -e "\n${YELLOW}[Finder]${NC}"
+  echo -e "${YELLOW}[Finder]${NC}"
   read_default com.apple.finder AppleShowAllFiles
   read_default NSGlobalDomain AppleShowAllExtensions
   read_default com.apple.finder ShowPathbar
@@ -115,79 +99,6 @@ if ! $DRY_RUN; then
   # Keep-alive: update existing sudo timestamp until script finishes
   while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 fi
-
-###############################################################################
-# Général                                                                     #
-###############################################################################
-
-echo -e "  ${YELLOW}→${NC} Général..."
-
-# Étendre les dialogues de sauvegarde par défaut
-run defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
-run defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
-
-# Étendre les dialogues d'impression par défaut
-run defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
-run defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
-
-# Sauvegarder sur disque (pas iCloud) par défaut
-run defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
-
-# Désactiver "Êtes-vous sûr de vouloir ouvrir cette application ?"
-run defaults write com.apple.LaunchServices LSQuarantine -bool false
-
-# Fermer toujours confirmer les changements (désactivé = sauvegarde auto)
-run defaults write NSGlobalDomain NSCloseAlwaysConfirmsChanges -bool false
-
-# Garder les fenêtres lors de la fermeture d'une app (resume)
-run defaults write NSGlobalDomain NSQuitAlwaysKeepsWindows -bool true
-
-###############################################################################
-# Clavier                                                                     #
-###############################################################################
-
-echo -e "  ${YELLOW}→${NC} Clavier..."
-
-# Répétition des touches rapide
-run defaults write NSGlobalDomain KeyRepeat -int 2
-run defaults write NSGlobalDomain InitialKeyRepeat -int 15
-
-# Désactiver la correction automatique
-run defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
-
-# Désactiver la capitalisation automatique
-run defaults write NSGlobalDomain NSAutomaticCapitalizationEnabled -bool false
-
-# Désactiver le remplacement automatique des points
-run defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
-
-# Désactiver les guillemets intelligents
-run defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
-
-# Désactiver les tirets intelligents
-run defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
-
-# Activer la répétition des touches (au lieu du popup accents)
-# run defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
-
-# Activer la navigation clavier complète (Tab entre tous les contrôles)
-run defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
-
-###############################################################################
-# Trackpad                                                                    #
-###############################################################################
-
-echo -e "  ${YELLOW}→${NC} Trackpad..."
-
-# Activer le tap pour cliquer
-run defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-run defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
-run defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-run defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
-
-# Activer le three finger drag (glisser avec 3 doigts)
-run defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true
-run defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
 
 ###############################################################################
 # Finder                                                                      #
@@ -311,23 +222,6 @@ run defaults write com.apple.screencapture type -string "png"
 
 # Désactiver les ombres dans les captures
 run defaults write com.apple.screencapture disable-shadow -bool true
-
-###############################################################################
-# Activité & Énergie                                                         #
-###############################################################################
-
-echo -e "  ${YELLOW}→${NC} Énergie..."
-
-# Ne jamais mettre en veille quand branché (uniquement display après 15min)
-if ! $DRY_RUN; then
-  sudo pmset -c displaysleep 15
-  sudo pmset -c sleep 0
-else
-  echo -e "  ${PURPLE}◇${NC} [dry-run] sudo pmset -c displaysleep 15"
-  echo -e "  ${PURPLE}◇${NC} [dry-run] sudo pmset -c sleep 0"
-fi
-
-# Note: Le pourcentage de batterie est maintenant dans System Settings > Control Center
 
 ###############################################################################
 # Time Machine                                                                #
