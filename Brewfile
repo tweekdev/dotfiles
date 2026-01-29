@@ -83,6 +83,7 @@ cask "gcloud-cli"
 cask "chromium"
 cask "zen"
 cask "sf-symbols"
+cask "bruno"
 
 # -----------------
 # Apps to install manually (not managed by brew)
