@@ -123,11 +123,11 @@ export NVM_DIR="$HOME/.nvm"
 # ============================================
 # Project aliases (travauxlib)
 # ============================================
-alias fullCheck="yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-alias fullCheckAdmin="cd ~/Developer/travauxlib/admin && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-alias fullCheckPro="cd ~/Developer/travauxlib/pro && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-alias fullCheckApp="cd ~/Developer/travauxlib/app && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
-alias fullCheckShared="cd ~/Developer/travauxlib/shared && yarn test:ci --coverage && yarn lint --fix && yarn typecheck"
+alias fullCheck="yarn test:ci --coverage && yarn lint --fix && yarn typecheck" # full check
+alias fullCheckAdmin="cd ~/Developer/travauxlib/admin && yarn test:ci --coverage && yarn lint --fix && yarn typecheck" # full check admin
+alias fullCheckPro="cd ~/Developer/travauxlib/pro && yarn test:ci --coverage && yarn lint --fix && yarn typecheck" # full check pro
+alias fullCheckApp="cd ~/Developer/travauxlib/app && yarn test:ci --coverage && yarn lint --fix && yarn typecheck" # full check app
+alias fullCheckShared="cd ~/Developer/travauxlib/shared && yarn test:ci --coverage && yarn lint --fix && yarn typecheck" # full check shared
 
 #alias fullCheck="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh "
 #alias fullCheckAdmin="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh admin"
@@ -135,15 +135,15 @@ alias fullCheckShared="cd ~/Developer/travauxlib/shared && yarn test:ci --covera
 #alias fullCheckApp="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh app"
 #alias fullCheckShared="cd ~/Developer/travauxlib/scripts && ./full-check-all.sh shared"
 
-alias check="yarn lint --fix && yarn typecheck"
-alias yt="DEBUG_PRINT_LIMIT=50000 yarn test"
-alias ytl="yarn test:local"
-alias pjt="cd Developer/travauxlib"
+alias check="yarn lint --fix && yarn typecheck" # check lint and typecheck
+alias yt="DEBUG_PRINT_LIMIT=50000 yarn test" # test
+alias ytl="yarn test:local" # test local
+alias pjt="cd Developer/travauxlib" # project travauxlib
 
 # ============================================
 # General aliases
 # ============================================
-alias zshcode="code ~/.zshrc"
+alias zshcode="cursor ~/.zshrc" # open zshrc in cursor
 alias cat='bat'
 alias ls='eza --color=always --long --git --icons=always'
 alias lst='eza --color=always --long --git --icons=always --tree --level=3'
@@ -158,8 +158,8 @@ alias vim='nvim'
 alias vi='nvim'
 alias v='nvim'
 alias n='nvim'
-alias vif='nvim $(fzf)'
-alias sn='find . -name "*.js" -or -name "*.ts" | entr -r nvim'
+alias vif='nvim $(fzf)' # open file in nvim with fzf
+alias sn='find . -name "*.js" -or -name "*.ts" | entr -r nvim' # open file in nvim with entr
 
 # ============================================
 # Git aliases (cleaned - no duplicates)
@@ -171,72 +171,74 @@ git_current_branch() {
 }
 
 # Status
-alias s='git status -sb'
-alias gst="git status"
+alias s='git status -sb' # status with branch
+alias gst="git status" # status
 
 # Add
-alias ga='git add -A'
-alias gap='git add -p'
-alias add="git add -p ."
-alias adds="git add ."
+alias ga='git add -A' # add all changes
+alias add="git add -p ." # add changes
+alias adds="git add ." # add changes
 
 # Commit
-alias gc='git commit'
-alias gcm="git commit -m "
-alias gca='git commit --amend --no-edit'
-alias gce='git commit --amend'
-alias gca!='git commit -v -a --amend'
+alias gc='git commit' # no message
+alias gcm="git commit -m " # commit with message
+alias gca='git commit --amend --no-edit' # amend last commit
+alias gce='git commit --amend' # amend last commit
+alias gca!='git commit -v -a --amend' # amend last commit with changes
 
 # Branch
-alias gb='git branch -v'
-alias gba='git branch --all'
-alias gcb='git checkout -b'
-alias gn='git checkout -b'
-alias gco='git checkout'
-alias gckm="git checkout -"
-alias master="git checkout master"
-alias masterp="git checkout master && git pull"
-alias develop="git checkout develop"
-alias developp="git checkout develop && git pull"
+alias gb='git branch -v' # list branches
+alias gba='git branch --all' # list all branches
+alias gcb='git checkout -b' # create new branch
+alias gco='git checkout' # checkout branch
+alias gckm="git checkout -" # checkout branch to last one
+alias master="git checkout master" # checkout master branch
+alias masterp="git checkout master && git pull" # checkout master branch and pull
+alias develop="git checkout develop" # checkout develop branch
+alias developp="git checkout develop && git pull" # checkout develop branch and pull
 
 # Push/Pull
-alias gp='git push'
-alias gpthis='gp origin $(git_current_branch)'
-alias gpthis!='gp --set-upstream origin $(git_current_branch)'
-alias push='git push -u origin $(git_current_branch)'
-alias pull="git pull"
-alias gu='git pull'
-alias gf='git fetch'
-alias gfa='git fetch --all'
+alias gp='git push' # push changes
+alias gpthis='gp origin $(git_current_branch)' # push changes to origin
+alias gpthis!='gp --set-upstream origin $(git_current_branch)' # push changes to origin and set upstream
+alias push='git push -u origin $(git_current_branch)' # push changes to origin and set upstream
+alias pull="git pull" # pull changes
+alias gf='git fetch' # fetch changes
+alias gfa='git fetch --all' # fetch all changes
 
 # Diff
-alias gd='git diff -M'
-alias gd.='git diff -M --color-words="."'
-alias gdc='git diff --cached -M'
-alias gdc.='git diff --cached -M --color-words="."'
-alias gds='git diff --staged'
+alias gd='git diff -M' # diff changes
+alias gd.='git diff -M --color-words="."' # diff changes with color words
+alias gdc='git diff --cached -M' # diff changes cached
+alias gdc.='git diff --cached -M --color-words="."' # diff changes cached with color words
+alias gds='git diff --staged' # diff changes staged
 
 # Log
-alias glog='git log --date-order --pretty="format:%C(yellow)%h%Cblue%d%Creset %s %C(white) %an, %ar%Creset"'
-alias gl='glog --graph'
-alias gla='gl --all'
+alias glog='git log --date-order --pretty="format:%C(yellow)%h%Cblue%d%Creset %s %C(white) %an, %ar%Creset"' # log changes
+alias gl='glog --graph' # log changes graph
+alias gla='gl --all' # log changes all
 
 # Show
-alias gsh='git show'
-alias gsh.='git show --color-words="."'
+alias gsh='git show' # show changes
+alias gsh.='git show --color-words="."' # show changes with color words
+
+# git flow
+alias release-delete="git flow release delete -f " # delete release 
+alias hotfix-delete="git flow hotfix delete -f " # delete hotfix 
 
 # Merge/Rebase
-alias gm='git merge'
-alias gmf='git merge --ff-only'
-alias grb='git rebase -p'
-alias grba='git rebase --abort'
-alias grbc='git rebase --continue'
-alias grbi='git rebase -i'
+alias grbdevelop='git rebase develop' # rebase develop
+alias gm='git merge' # merge changes
+alias gmf='git merge --ff-only' # merge changes fast forward only
+alias grb='git rebase -p' # rebase changes
+alias grba='git rebase --abort' # rebase abort
+alias grbc='git rebase --continue' # rebase continue
+alias grbi='git rebase -i' # rebase interactive
 
 # Reset
-alias gr='git reset'
-alias grh='git reset --hard'
-alias grsh='git reset --soft HEAD~'
+alias gr='git reset' # reset changes
+alias grh='git reset --hard' # reset changes hard
+alias grsh='git reset --soft HEAD~' # reset changes soft HEAD~
 
 # Other git
 alias gcl='git clone --recursive'
@@ -248,64 +250,63 @@ alias gch='git cherry-pick'
 alias gfs='git feature-start '
 
 git_squash() {
-  git reset $(git merge-base develop $(git branch --show-current))
-  git add -A
-  git commit -m "$1"
+  git reset $(git merge-base develop $(git branch --show-current)) # reset to develop
+  git add -A # add all changes
+  git commit -m "$1" # commit with message
 }
 
 # ============================================
 # SBT
 # ============================================
-alias sbt="sbt -v -mem 2048"
+alias sbt="sbt -v -mem 2048" # start sbt with memory 2048
 
 # ============================================
 # Zoxide (replaces z.sh)
 # ============================================
-eval "$(zoxide init zsh)"
+eval "$(zoxide init zsh)" # initialize zoxide
 
 # ============================================
 # Docker
 # ============================================
-alias d='docker'
-alias dc='docker-compose'
-alias fuckdocker='docker run -p 5432:5432 --name hemea-db --restart=always -e POSTGRES_USER=hemea -e POSTGRES_DB=hemea -e POSTGRES_PASSWORD=hemea -d postgres'
-alias itdb="docker run -p 5431:5432 --name integration-test-db --restart=always -e POSTGRES_USER=play -e POSTGRES_DB=travauxlib-test -e POSTGRES_PASSWORD=play -d postgres &"
+alias d='docker' # start docker
+alias dc='docker-compose' # start docker compose
+alias fuckdocker='docker run -p 5432:5432 --name hemea-db --restart=always -e POSTGRES_USER=hemea -e POSTGRES_DB=hemea -e POSTGRES_PASSWORD=hemea -d postgres' # start docker with postgres
+alias itdb="docker run -p 5431:5432 --name integration-test-db --restart=always -e POSTGRES_USER=play -e POSTGRES_DB=travauxlib-test -e POSTGRES_PASSWORD=play -d postgres &" # start docker with postgres for integration test
 
 # ============================================
 # Container
 # ============================================
-alias c='container'
-alias ck='container kill'
-alias ckl='container kill all'
-alias ckll='container kill all'
-alias cl='container list'
-alias cs='container system start'
+alias c='container' # start container
+alias ck='container kill' # kill container
+alias ckl='container kill all' # kill all containers
+alias cl='container list' # list containers
+alias cs='container system start' # start container system
 
 # ============================================
 # DB connect aliases
 # ============================================
-alias dbprod='cd ~/Developer/travauxlib/scripts && ./db_connect.js prod'
-alias dbdev='cd ~/Developer/travauxlib/scripts && ./db_connect.js develop'
-alias dbrecette='cd ~/Developer/travauxlib/scripts && ./db_connect.js recette'
+alias dbprod='cd ~/Developer/travauxlib/scripts && ./db_connect.js prod' # connect to prod database
+alias dbdev='cd ~/Developer/travauxlib/scripts && ./db_connect.js develop' # connect to develop database
+alias dbrecette='cd ~/Developer/travauxlib/scripts && ./db_connect.js recette' # connect to recette database
 
 # ============================================
 # Project start aliases
 # ============================================
-alias all='cd ~/Developer/travauxlib/scripts && ./start.sh all'
-alias main='cd ~/Developer/travauxlib/scripts && ./start.sh main'
-alias admin='cd ~/Developer/travauxlib/scripts && ./start.sh admin'
-alias pro='cd ~/Developer/travauxlib/scripts && ./start.sh pro'
-alias app='cd ~/Developer/travauxlib/scripts && ./start.sh app'
-alias shared='cd ~/Developer/travauxlib/scripts && ./start.sh shared'
-alias pdf='cd ~/Developer/travauxlib/scripts && ./start.sh pdf'
+alias all='cd ~/Developer/travauxlib/scripts && ./start.sh all' # start all projects
+alias main='cd ~/Developer/travauxlib/scripts && ./start.sh main' # start main project
+alias admin='cd ~/Developer/travauxlib/scripts && ./start.sh admin' # start admin project
+alias pro='cd ~/Developer/travauxlib/scripts && ./start.sh pro' # start pro project
+alias app='cd ~/Developer/travauxlib/scripts && ./start.sh app' # start app project
+alias shared='cd ~/Developer/travauxlib/scripts && ./start.sh shared' # start shared project
+alias pdf='cd ~/Developer/travauxlib/scripts && ./start.sh pdf' # start pdf project
 
 # ============================================
 # Brewfile
 # ============================================
 alias brewfile='brew bundle --file=~/.config/dotfiles/Brewfile'
-alias brewcheck='brew bundle check --file=~/.config/dotfiles/Brewfile'
-alias brewclean='brew bundle cleanup --file=~/.config/dotfiles/Brewfile'
-alias brewdump='brew bundle dump --force --file=~/.config/dotfiles/Brewfile'
+alias brewcheck='brew bundle check --file=~/.config/dotfiles/Brewfile' # check brewfile
+alias brewclean='brew bundle cleanup --file=~/.config/dotfiles/Brewfile' # clean brewfile
+alias brewdump='brew bundle dump --force --file=~/.config/dotfiles/Brewfile' # dump brewfile
 
 # ============================================
 # Sesh sessions
@@ -356,10 +357,10 @@ PATH="/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH"
 # ============================================
 # Starship prompt (keep near end)
 # ============================================
-eval "$(starship init zsh)"
+eval "$(starship init zsh)" # initialize starship prompt
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
-export PATH="$HOME/.local/bin:$PATH"
+export SDKMAN_DIR="$HOME/.sdkman" # sdkman directory
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh" # sdkman init
+export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH" # postgresql bin
+export PATH="$HOME/.local/bin:$PATH" # local bin
