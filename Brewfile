@@ -13,6 +13,7 @@
 tap "coursier/formulas"
 tap "felixkratz/formulae"
 tap "koekeishiya/formulae"
+tap "nikitabobko/tap"
 # Note: homebrew/cask-fonts est déprécié, les fonts sont maintenant dans le repo principal
 
 # -----------------
@@ -75,6 +76,7 @@ cask "font-hack-nerd-font"
 # -----------------
 # Casks (GUI Apps)
 # -----------------
+cask "nikitabobko/tap/aerospace"
 cask "cursor"
 cask "ghostty"
 cask "raycast"

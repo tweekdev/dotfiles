@@ -8,3 +8,4 @@ project/metals
 project/project
 .bsp
 travauxlib/coverage-viewer.sh
+.husky

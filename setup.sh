@@ -328,7 +328,7 @@ do_links() {
   echo ""
   echo -e "  ${BOLD}Fichiers :${NC}"
   # Fichiers à remplacer
-  for FILE in .zshrc .tmux.conf .gitconfig .gitignore_global; do
+  for FILE in .zshrc .tmux.conf .gitconfig .gitignore_global .aerospace.toml; do
     TARGET="$HOME/$FILE"
     if [ "$DRY_RUN" = true ]; then
       log "DRY" "$FILE → ~/$FILE"
