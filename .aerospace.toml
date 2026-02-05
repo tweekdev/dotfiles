@@ -50,7 +50,7 @@ automatically-unhide-macos-hidden-apps = false
 # even when they are invisible.
 # This config version is only available since 'config-version = 2'
 # Fallback value (if you omit the key): persistent-workspaces = []
-persistent-workspaces = ["5-Music", "6", "7", "8", "9",
+persistent-workspaces = ["5-DBManager", "6", "7", "8-Music", "9",
                          "1-Browser", "2-Terminal", "3-Dev", "4-Chat"]
 
 # A callback that runs every time binding mode changes
@@ -76,13 +76,13 @@ on-mode-changed = []
     inner.vertical =   10
     outer.left =       8
     outer.bottom =     8
-    #outer.top =        8
+    outer.top =        8
     outer.right =      8
-    outer.top = [
-    { monitor."built-in" = 12 },
-    { monitor."main" = 42 },
-    42
-    ]
+    #outer.top = [
+    #{ monitor."built-in" = 12 },
+    #{ monitor."main" = 42 },
+    #42
+    #]
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
 # 'main' binding mode must be always presented
@@ -164,10 +164,10 @@ on-mode-changed = []
     cmd-2 = 'workspace 2-Terminal'
     cmd-3 = 'workspace 3-Dev'
     cmd-4 = 'workspace 4-Chat'
-    cmd-5 = 'workspace 5-Music'
+    cmd-5 = 'workspace 5-DBManager'
     cmd-6 = 'workspace 6'
     cmd-7 = 'workspace 7'
-    cmd-8 = 'workspace 8'
+    cmd-8 = 'workspace 8-Music'
     cmd-9 = 'workspace 9'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
@@ -175,10 +175,10 @@ on-mode-changed = []
     cmd-shift-2 = 'move-node-to-workspace 2-Terminal'
     cmd-shift-3 = 'move-node-to-workspace 3-Dev'
     cmd-shift-4 = 'move-node-to-workspace 4-Chat'
-    cmd-shift-5 = 'move-node-to-workspace 5-Music'
+    cmd-shift-5 = 'move-node-to-workspace 5-DBManager'
     cmd-shift-6 = 'move-node-to-workspace 6'
     cmd-shift-7 = 'move-node-to-workspace 7'
-    cmd-shift-8 = 'move-node-to-workspace 8'
+    cmd-shift-8 = 'move-node-to-workspace 8-Music'
     cmd-shift-9 = 'move-node-to-workspace 9'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
@@ -220,10 +220,10 @@ on-mode-changed = []
     "2-Terminal" = 'secondary'
     "3-Dev" = 'secondary'
     "4-Chat" = 'main'
-    "5-Music" = 'main'
+    "5-DBManager" = 'main'
     6 = 'main'
     7 = 'main'
-    8 = 'main'
+    8-Music = 'main'
     9 = 'main'
 
 ######################### DEFAULT OPENING ###########################
@@ -262,10 +262,14 @@ on-mode-changed = []
     if.app-id = 'com.apple.iCal'
     run = ['move-node-to-workspace 4-Chat', 'layout tiling']
 
+[[on-window-detected]]
+    if.app-id = 'com.tinyapp.TablePlus'
+    run = ['move-node-to-workspace 5-DBManager', 'layout tiling']
+
 # 8 (Music)
 [[on-window-detected]]
     if.app-id = 'com.apple.Music'
-    run = 'move-node-to-workspace 5-Music'
+    run = 'move-node-to-workspace 8-Music'
 
 [[on-window-detected]]
     if.app-id = 'com.apple.SystemPreferences'
