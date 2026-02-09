@@ -109,7 +109,7 @@ return {
 	},
 	keys = {
 		{
-			"<leader>ff",
+			"<leader>fF",
 			function()
 				require("fzf-lua").files()
 			end,
@@ -194,7 +194,7 @@ return {
 			desc = "[F]ind [R]esume",
 		},
 		{
-			"<leader><leader>",
+			"<leader>fo",
 			function()
 				require("fzf-lua").oldfiles()
 			end,

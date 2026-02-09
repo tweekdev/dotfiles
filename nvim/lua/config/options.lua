@@ -26,10 +26,10 @@ vim.opt.cursorline = true
 vim.opt.undofile = true
 
 -- Recherche
-vim.opt.incsearch = true       -- Recherche incrémentale
-vim.opt.hlsearch = true        -- Mettre en surbrillance les résultats de recherche
-vim.opt.ignorecase = true      -- Ignorer la casse dans les recherches
-vim.opt.path:append({ "**" })  -- Chercher dans tous les sous-dossiers
+vim.opt.incsearch = true -- Recherche incrémentale
+vim.opt.hlsearch = true -- Mettre en surbrillance les résultats de recherche
+vim.opt.ignorecase = true -- Ignorer la casse dans les recherches
+vim.opt.path:append({ "**" }) -- Chercher dans tous les sous-dossiers
 vim.opt.wildignore:append({ "*/node_modules/*" }) -- Ignorer node_modules
 
 -- Enable mouse mode, can be useful for resizing splits for example!
@@ -66,4 +66,8 @@ vim.opt.fileencoding = "utf-8"
 vim.opt.formatoptions:append({ "r" }) -- Ajouter des astérisques dans les commentaires en bloc
 
 vim.opt.backspace = { "start", "eol", "indent" } -- Comportement de la touche backspace
-vim.opt.inccommand = "split"    -- Afficher les remplacements en temps réel<D-s>
+vim.opt.inccommand = "split"
+
+vim.g.lazyvim_picker = "snacks"
+
+-- Afficher les remplacements en temps réel<D-s>

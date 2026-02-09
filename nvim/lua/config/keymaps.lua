@@ -31,12 +31,12 @@ vim.keymap.set("n", "sl", "<C-w>l", { desc = "Move to right window" })
 
 -- Specific tools
 -- Navigation
-vim.keymap.set("n", "<leader>e", function()
-	_G.neotree.toggle_root()
-end, { desc = "Explorer NeoTree (Root Dir)" })
-vim.keymap.set("n", "<leader>E", function()
-	_G.neotree.toggle_cwd()
-end, { desc = "Explorer NeoTree (CWD)" })
+--vim.keymap.set("n", "<leader>e", function()
+--	_G.neotree.toggle_root()
+--end, { desc = "Explorer NeoTree (Root Dir)" })
+--vim.keymap.set("n", "<leader>E", function()
+--	_G.neotree.toggle_cwd()
+--end, { desc = "Explorer NeoTree (CWD)" })
 
 -- Which-key configuration for group labels and advanced mappings
 wk.add({
@@ -100,11 +100,12 @@ wk.add({
 	-- LSP
 	{ "<leader>l", group = "+lsp" },
 	{ "<leader>K", "<cmd>lua vim.lsp.buf.hover()<CR>", desc = "LSP hover" },
+
 	-- Trouble
 	{ "<leader>x", group = "+trouble" },
 	{ "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", desc = "Toggle" },
 	{ "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Buffer Diagnostics" },
-	{ "<leader>xd", "<cmd>TroubleToggle document_diagnostics<CR>", desc = "Document Diagnostics" },
+	{ "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Diagnostics" },
 	{ "<leader>xq", "<cmd>Trouble qflist toggle<CR>", desc = "Quickfix" },
 	{ "<leader>xL", "<cmd>Trouble loclist toggle<CR>", desc = "Loclist" },
 
