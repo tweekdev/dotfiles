@@ -83,7 +83,7 @@ cask "gcloud-cli"
 cask "chromium"
 cask "sf-symbols"
 cask "bruno"
-#cask "cursor"
+cask "cursor"
 #cask "visual-studio-code"
 #cask "zen"
 
