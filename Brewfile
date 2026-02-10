@@ -77,15 +77,15 @@ cask "font-hack-nerd-font"
 # Casks (GUI Apps)
 # -----------------
 cask "nikitabobko/tap/aerospace"
-cask "cursor"
 cask "ghostty"
 cask "raycast"
-cask "visual-studio-code"
 cask "gcloud-cli"
 cask "chromium"
-cask "zen"
 cask "sf-symbols"
 cask "bruno"
+#cask "cursor"
+#cask "visual-studio-code"
+#cask "zen"
 
 # -----------------
 # Apps to install manually (not managed by brew)

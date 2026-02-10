@@ -190,6 +190,19 @@ do_install() {
   # Installations spéciales
   section "🔧 Outils supplémentaires"
 
+  # Cursor
+  if [ ! -d "/Applications/Cursor.app" ]; then
+    log "INFO" "Installation de Cursor..."
+    if [ "$DRY_RUN" = true ]; then
+      log "DRY" "curl https://cursor.com/install -fsS | bash"
+    else
+      curl https://cursor.com/install -fsS | bash
+      log "SUCCESS" "Cursor installé"
+    fi
+  else
+    log "SUCCESS" "Cursor"
+  fi
+
   # Docker
   #if ! command -v docker &>/dev/null && [ ! -d "/Applications/Docker.app" ]; then
   #  log "WARN" "Docker non installé"
@@ -345,7 +358,7 @@ do_links() {
   echo ""
   echo -e "  ${BOLD}Dossiers :${NC}"
   # Dossiers à remplacer
-  for DIR in nvim sesh cursor vscode git ghostty; do
+  for DIR in nvim sesh git ghostty; do
     TARGET="$CONFIG_DIR/$DIR"
     if [ "$DRY_RUN" = true ]; then
       log "DRY" "$DIR/ → ~/.config/$DIR"
@@ -597,7 +610,7 @@ do_rollback() {
       fi
     done
     
-    for dir in nvim sesh cursor vscode git ghostty; do
+    for dir in nvim sesh git ghostty; do
       if [ -d "$backup_dir/$dir" ]; then
         rm -rf "$CONFIG_DIR/$dir"
         cp -r "$backup_dir/$dir" "$CONFIG_DIR/$dir"
