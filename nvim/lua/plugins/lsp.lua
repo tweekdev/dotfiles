@@ -46,14 +46,13 @@ return {
 			group = vim.api.nvim_create_augroup("kickstart-lsp-attach", { clear = true }),
 			callback = function(event)
 				local client = vim.lsp.get_client_by_id(event.data.client_id)
-				
-				-- Block vtsls from attaching - we only want ts_ls for TypeScript
+
+				-- Block vtsls from attaching - we only want ts_ls for TypeScript (no notification, config is intentional)
 				if client and client.name == "vtsls" then
-					vim.notify("vtsls blocked - using ts_ls instead", vim.log.levels.WARN)
 					vim.lsp.stop_client(client.id, true)
 					return
 				end
-				
+
 				-- NOTE: Remember that Lua is a real programming language, and as such it is possible
 				-- to define small helper and utility functions so you don't have to repeat yourself.
 				--
@@ -315,12 +314,8 @@ return {
 			handlers = {
 				function(server_name)
 					local server = servers[server_name] or {}
-					
+
 					-- Disable vtsls to avoid conflict with ts_ls for React/TypeScript projects
-					if server_name == "vtsls" then
-						return -- Don't setup vtsls, we only want ts_ls for TypeScript
-					end
-					
 					-- Disable formatting for ts_ls (use prettier/prettierd instead)
 					if server_name == "ts_ls" then
 						server.on_attach = function(client, bufnr)
@@ -329,12 +324,13 @@ return {
 							client.server_capabilities.documentRangeFormattingProvider = false
 						end
 					end
-					
+
 					-- This handles overriding only values explicitly passed
 					-- by the server configuration above. Useful when disabling
 					-- certain features of an LSP (for example, turning off formatting for ts_ls)
 					-- Merge capabilities: start with base, then add server-specific overrides
-					local merged_capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+					local merged_capabilities =
+						vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
 					server.capabilities = merged_capabilities
 					require("lspconfig")[server_name].setup(server)
 				end,

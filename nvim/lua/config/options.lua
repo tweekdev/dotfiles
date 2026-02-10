@@ -1,3 +1,10 @@
+-- Shim for deprecated vim.lsp.buf_get_clients() (Neovim 0.11+) so plugins like blink.cmp keep working
+if vim.lsp and vim.lsp.get_clients then
+	vim.lsp.buf_get_clients = function(bufnr)
+		return vim.lsp.get_clients({ bufnr = bufnr or 0 })
+	end
+end
+
 -- Some keyboard mappings as I don't want to break my fingers, while typing on a "german" keyboard ;)
 vim.opt.langmap = "+]ü["
 -- Plain langmap remapping does not seem to do the trick :(

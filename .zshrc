@@ -289,7 +289,7 @@ alias c='container' # start container
 alias ck='container kill' # kill container
 alias ckl='container kill all' # kill all containers
 alias cl='container list' # list containers
-alias cs='container system start' # start container system
+alias css='container system start' # start container system
 
 # ============================================
 # DB connect aliases
@@ -374,3 +374,4 @@ export SDKMAN_DIR="$HOME/.sdkman" # sdkman directory
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh" # sdkman init
 export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH" # postgresql bin
 export PATH="$HOME/.local/bin:$PATH" # local bin
+export PATH="$PATH:/Users/tweekdev/Library/Application Support/Coursier/bin"

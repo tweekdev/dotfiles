@@ -1,48 +1,47 @@
 return {
 	"nvim-treesitter/nvim-treesitter",
+	branch = "main",
+	lazy = false,
 	build = ":TSUpdate",
 	config = function()
-		local configs = require("nvim-treesitter.configs")
+		-- Setup nvim-treesitter (main branch API)
+		require("nvim-treesitter").setup({
+			install_dir = vim.fn.stdpath("data") .. "/site",
+		})
 
-		configs.setup({
-			ensure_installed = {
-				"c",
-				"lua",
-				"vim",
-				"vimdoc",
-				"query",
-				"elixir",
-				"heex",
-				"javascript",
-				"typescript",
-				"html",
-				"markdown",
-				"markdown_inline",
-				"typescript",
-				"scala",
-				"css",
-				"json",
-				"jsonc",
-				"yaml",
-				"bash",
-				"dockerfile",
-				"gitignore",
-				"graphql",
-			},
-			auto_install = true,
-			sync_install = false,
-			highlight = { enable = true },
-			indent = { enable = true },
+		-- Install parsers (async, no-op if already installed)
+		require("nvim-treesitter").install({
+			"bash",
+			"c",
+			"css",
+			"diff",
+			"dockerfile",
+			"elixir",
+			"gitignore",
+			"graphql",
+			"heex",
+			"html",
+			"javascript",
+			"json",
+			"lua",
+			"markdown",
+			"markdown_inline",
+			"query",
+			"scala",
+			"tsx",
+			"typescript",
+			"vim",
+			"vimdoc",
+			"yaml",
+		})
 
-			incremental_selection = {
-				enable = true,
-				keymaps = {
-					init_selection = "<Enter>", -- set to `false` to disable one of the mappings
-					node_incremental = "<Enter>",
-					scope_incremental = false,
-					node_decremental = "<Backspace>",
-				},
-			},
+		-- Enable treesitter highlighting + indentation for buffers that have a parser
+		vim.api.nvim_create_autocmd("FileType", {
+			callback = function()
+				if pcall(vim.treesitter.start) then
+					vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+				end
+			end,
 		})
 	end,
 }

@@ -14,6 +14,7 @@ tap "coursier/formulas"
 tap "felixkratz/formulae"
 tap "koekeishiya/formulae"
 tap "nikitabobko/tap"
+tap "anomalyco/tap" # OpenCode CLI (opencode.nvim)
 # Note: homebrew/cask-fonts est déprécié, les fonts sont maintenant dans le repo principal
 
 # -----------------
@@ -23,6 +24,8 @@ brew "git"
 brew "git-lfs"
 brew "zsh"
 brew "neovim"
+brew "tree-sitter" # required by nvim-treesitter (main) to install parsers
+brew "tree-sitter-cli" # required by nvim-treesitter (main) to compile parsers
 brew "tmux"
 brew "fzf"
 brew "bat"
@@ -40,6 +43,7 @@ brew "pigz"
 brew "sesh"
 brew "nvm"
 brew "container"
+brew "anomalyco/tap/opencode" # CLI pour opencode.nvim (AI coding agent, GitHub Copilot, etc.)
 
 # -----------------
 # CLI Tools - Utilities

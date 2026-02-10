@@ -13,9 +13,6 @@ return {
 		-- optional: provides snippets for the snippet source
 		dependencies = {
 			"rafamadriz/friendly-snippets",
-			"moyiz/blink-emoji.nvim",
-			"ray-x/cmp-sql",
-			"codeium.nvim",
 		},
 
 		-- use a release tag to download pre-built binaries
@@ -40,8 +37,10 @@ return {
 			-- C-k: Toggle signature help (if signature.enabled = true)
 			--
 			-- See :h blink-cmp-config-keymap for defining your own keymap
+			-- preset "super-tab" : Tab = accepter, Enter = nouvelle ligne
+			-- Navigation (inclus dans le preset) : C-n / Down = suivant, C-p / Up = précédent, C-Space = ouvrir menu, C-e = fermer
 			keymap = {
-				preset = "enter",
+				preset = "super-tab",
 				["<C-Z>"] = { "accept", "fallback" },
 			},
 
@@ -92,7 +91,7 @@ return {
 					},
 				},
 				menu = {
-					auto_show = false,
+					auto_show = true, -- afficher la complétion en tapant (LSP, buffer, etc.)
 					enabled = true,
 					min_width = 15,
 					max_height = 10,
@@ -113,8 +112,6 @@ return {
 								width = { fill = true },
 								text = function(ctx)
 									local source_display = {
-										copilot = "[🤖]",
-										codeium = "[🧠]",
 										lsp = "[LSP]",
 										path = "[Path]",
 										snippets = "[Snip]",
@@ -137,51 +134,7 @@ return {
 			-- Default list of enabled providers defined so that you can extend it
 			-- elsewhere in your config, without redefining it, due to `opts_extend`
 			sources = {
-				default = { "lsp", "path", "snippets", "buffer", "codeium" },
-				providers = {
-					codeium = {
-						name = "codeium",
-						module = "blink.compat.source",
-						score_offset = 85,
-						async = true,
-					},
-					emoji = {
-						module = "blink-emoji",
-						name = "Emoji",
-						score_offset = 15, -- Tune by preference
-						opts = { insert = true }, -- Insert emoji (default) or complete its name
-						should_show_items = function()
-							return vim.tbl_contains(
-								-- Enable emoji completion only for git commits and markdown.
-								-- By default, enabled for all file-types.
-								{ "gitcommit", "markdown" },
-								vim.o.filetype
-							)
-						end,
-					},
-					sql = {
-						-- IMPORTANT: use the same name as you would for nvim-cmp
-						name = "sql",
-						module = "blink.compat.source",
-
-						-- all blink.cmp source config options work as normal:
-						score_offset = -3,
-
-						-- this table is passed directly to the proxied completion source
-						-- as the `option` field in nvim-cmp's source config
-						--
-						-- this is NOT the same as the opts in a plugin's lazy.nvim spec
-						opts = {},
-						should_show_items = function()
-							return vim.tbl_contains(
-								-- Enable emoji completion only for git commits and markdown.
-								-- By default, enabled for all file-types.
-								{ "sql" },
-								vim.o.filetype
-							)
-						end,
-					},
-				},
+				default = { "lsp", "path", "snippets", "buffer" },
 			},
 
 			-- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
@@ -195,26 +148,4 @@ return {
 	},
 	-- Configuration Copilot pour virtual text inline
 
-	-- Configuration Codeium pour virtual text inline
-	{
-		"Exafunction/codeium.nvim",
-		opts = {
-			enable_chat = true,
-			virtual_text = {
-				enabled = true,
-				manual = false,
-				idle_delay = 75,
-				virtual_text_priority = 65535,
-				map_keys = true,
-				key_bindings = {
-					accept = "<tab>", -- Même raccourci que Copilot pour cohérence
-					accept_word = "<C-Right>",
-					accept_line = "<C-j>",
-					clear = "<C-e>",
-					next = "<M-]>",
-					prev = "<M-[>",
-				},
-			},
-		},
-	},
 }
