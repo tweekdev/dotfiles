@@ -63,30 +63,77 @@ return {
 					vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = "LSP: " .. desc })
 				end
 
-				-- Jump to the definition of the word under your cursor.
-				--  This is where a variable was first declared, or where a function is defined, etc.
-				--  To jump back, press <C-t>.
-				map("gd", require("fzf-lua").lsp_definitions, "[G]oto [D]efinition")
+				-- Prefer Snacks picker, then Telescope, then LSP native (all show in picker/explorer UI)
+				local ok, Snacks = pcall(require, "snacks")
+				local use_snacks = ok and Snacks and Snacks.picker
+				local tb_ok, builtin = pcall(require, "telescope.builtin")
+				local use_telescope = tb_ok and builtin
 
-				-- Find references for the word under your cursor.
-				map("gr", require("fzf-lua").lsp_references, "[G]oto [R]eferences")
+				-- Jump to the definition (Snacks → Telescope → native).
+				map("gd", function()
+					if use_snacks and Snacks.picker.lsp_definitions then
+						Snacks.picker.lsp_definitions()
+					elseif use_telescope and builtin.lsp_definitions then
+						builtin.lsp_definitions()
+					else
+						vim.lsp.buf.definition()
+					end
+				end, "[G]oto [D]efinition")
 
-				-- Jump to the implementation of the word under your cursor.
-				--  Useful when your language has ways of declaring types without an actual implementation.
-				map("gI", require("fzf-lua").lsp_implementations, "[G]oto [I]mplementation")
+				-- Find references.
+				map("gr", function()
+					if use_snacks and Snacks.picker.lsp_references then
+						Snacks.picker.lsp_references()
+					elseif use_telescope and builtin.lsp_references then
+						builtin.lsp_references()
+					else
+						vim.lsp.buf.references()
+					end
+				end, "[G]oto [R]eferences")
 
-				-- Jump to the type of the word under your cursor.
-				--  Useful when you're not sure what type a variable is and you want to see
-				--  the definition of its *type*, not where it was *defined*.
-				map("<leader>D", require("fzf-lua").lsp_typedefs, "Type [D]efinition")
+				-- Jump to the implementation.
+				map("gI", function()
+					if use_snacks and Snacks.picker.lsp_implementations then
+						Snacks.picker.lsp_implementations()
+					elseif use_telescope and builtin.lsp_implementations then
+						builtin.lsp_implementations()
+					else
+						vim.lsp.buf.implementation()
+					end
+				end, "[G]oto [I]mplementation")
 
-				-- Fuzzy find all the symbols in your current document.
-				--  Symbols are things like variables, functions, types, etc.
-				map("<leader>ds", require("fzf-lua").lsp_document_symbols, "[D]ocument [S]ymbols")
+				-- Type definition.
+				map("<leader>D", function()
+					if use_snacks and Snacks.picker.lsp_type_definitions then
+						Snacks.picker.lsp_type_definitions()
+					elseif use_telescope and builtin.lsp_type_definitions then
+						builtin.lsp_type_definitions()
+					else
+						vim.lsp.buf.type_definition()
+					end
+				end, "Type [D]efinition")
 
-				-- Fuzzy find all the symbols in your current workspace.
-				--  Similar to document symbols, except searches over your entire project.
-				map("<leader>ws", require("fzf-lua").lsp_live_workspace_symbols, "[W]orkspace [S]ymbols")
+				-- Document symbols.
+				map("<leader>ds", function()
+					if use_snacks and Snacks.picker.lsp_symbols then
+						Snacks.picker.lsp_symbols()
+					elseif use_telescope and builtin.lsp_document_symbols then
+						builtin.lsp_document_symbols()
+					else
+						vim.lsp.buf.document_symbol()
+					end
+				end, "[D]ocument [S]ymbols")
+
+				-- Workspace symbols.
+				map("<leader>ws", function()
+					if use_snacks and Snacks.picker.lsp_workspace_symbols then
+						Snacks.picker.lsp_workspace_symbols()
+					elseif use_telescope and builtin.lsp_workspace_symbols then
+						builtin.lsp_workspace_symbols()
+					else
+						vim.lsp.buf.workspace_symbol()
+					end
+				end, "[W]orkspace [S]ymbols")
 
 				-- Rename the variable under your cursor.
 				--  Most Language Servers support renaming across files, etc.
@@ -99,8 +146,15 @@ return {
 				map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction", { "n", "x" })
 
 				-- WARN: This is not Goto Definition, this is Goto Declaration.
-				--  For example, in C this would take you to the header.
-				map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
+				map("gD", function()
+					if use_snacks and Snacks.picker.lsp_declarations then
+						Snacks.picker.lsp_declarations()
+					elseif use_telescope and builtin.lsp_declarations then
+						builtin.lsp_declarations()
+					else
+						vim.lsp.buf.declaration()
+					end
+				end, "[G]oto [D]eclaration")
 
 				-- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
 				---@param client vim.lsp.Client
@@ -202,8 +256,11 @@ return {
 		--  When you add nvim-cmp, luasnip, etc. Neovim now has *more* capabilities.
 		--  So, we create new capabilities with nvim cmp, and then broadcast that to the servers.
 		local original_capabilities = vim.lsp.protocol.make_client_capabilities()
-		local capabilities = require("blink.cmp").get_lsp_capabilities(original_capabilities)
-		-- capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+		local capabilities = original_capabilities
+		local ok, blink = pcall(require, "blink.cmp")
+		if ok and blink and blink.get_lsp_capabilities then
+			capabilities = blink.get_lsp_capabilities(original_capabilities)
+		end
 
 		-- Enable the following language servers
 		--  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -268,8 +325,6 @@ return {
 					},
 				},
 			},
-			--
-
 			lua_ls = {
 				-- cmd = { ... },
 				-- filetypes = { ... },

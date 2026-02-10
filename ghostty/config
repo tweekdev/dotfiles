@@ -47,5 +47,5 @@
 # # which is explained in the docs for that config option.
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
-#background-opacity = 0.9
-#background-blur-radius = 10
+background-opacity = 0.95brew install anomalyco/tap/opencodeq
+background-blur-radius = 10

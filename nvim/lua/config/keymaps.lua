@@ -53,6 +53,13 @@ wk.add({
 	{ "<leader>rn", ":IncRename ", desc = "Rename" },
 	{ "<leader>dt", "<cmd>DapToggleBreakpoint<CR>", desc = "Toggle Breakpoint" },
 
+	-- AI
+	{ "<leader>a", group = "+ai" },
+	{ "<leader>oa", "<cmd>OpencodeAsk<CR>", desc = "Opencode Ask" },
+	-- claude code
+	{ "<leader>ac", "<cmd>ClaudeCode<CR>", desc = "Claude Code" },
+
+
 	-- Debugger
 	{ "<leader>d", group = "+debugger" },
 

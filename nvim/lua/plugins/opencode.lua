@@ -18,7 +18,7 @@ return {
 	event = "VeryLazy",
 	config = function()
 		vim.g.opencode_opts = {
-			-- Démarrer opencode via un terminal snacks à droite si aucun processus n'est trouvé
+			-- Démarre opencode via un terminal Snacks à droite si aucun processus n'est trouvé.
 			provider = {
 				enabled = "snacks",
 				cmd = "opencode --port",

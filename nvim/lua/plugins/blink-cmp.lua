@@ -8,11 +8,24 @@ return {
 		-- make sure to set opts so that lazy.nvim calls blink.compat's setup
 		opts = {},
 	},
+	-- GitHub Copilot : suggestions IA dans le menu blink.cmp (via copilot.lua + blink-copilot)
+	{
+		"zbirenbaum/copilot.lua",
+		cmd = "Copilot",
+		event = "InsertEnter",
+		opts = {
+			suggestion = { enabled = false },
+			panel = { enabled = false },
+			filetypes = { markdown = true, help = true },
+		},
+	},
 	{
 		"saghen/blink.cmp",
 		-- optional: provides snippets for the snippet source
 		dependencies = {
 			"rafamadriz/friendly-snippets",
+			"fang2hou/blink-copilot",
+			"zbirenbaum/copilot.lua",
 		},
 
 		-- use a release tag to download pre-built binaries
@@ -113,6 +126,7 @@ return {
 								text = function(ctx)
 									local source_display = {
 										lsp = "[LSP]",
+										copilot = "[Copilot]",
 										path = "[Path]",
 										snippets = "[Snip]",
 										buffer = "[Buf]",
@@ -131,10 +145,17 @@ return {
 				},
 			},
 			signature = { enabled = true },
-			-- Default list of enabled providers defined so that you can extend it
-			-- elsewhere in your config, without redefining it, due to `opts_extend`
+			-- Default list of enabled providers (LSP + Copilot IA + path, snippets, buffer)
 			sources = {
-				default = { "lsp", "path", "snippets", "buffer" },
+				default = { "lsp", "copilot", "path", "snippets", "buffer" },
+				providers = {
+					copilot = {
+						name = "copilot",
+						module = "blink-copilot",
+						async = true,
+						score_offset = 100,
+					},
+				},
 			},
 
 			-- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
@@ -144,8 +165,7 @@ return {
 			-- See the fuzzy documentation for more information
 			fuzzy = { implementation = "prefer_rust_with_warning" },
 		},
-		opts_extend = { "sources.default" },
+		opts_extend = { "sources.default", "sources.providers" },
 	},
-	-- Configuration Copilot pour virtual text inline
-
+	-- IA : Copilot dans le menu (ci‑dessus) ; OpenCode pour ask/prompts : <leader>oa, <leader>os (voir opencode.lua)
 }
