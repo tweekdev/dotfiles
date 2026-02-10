@@ -9,7 +9,6 @@ config-version = 2
 # Available commands : https://nikitabobko.github.io/AeroSpace/commands
 after-startup-command = [
   'exec-and-forget borders active_color=0xffe1e3e4 width=5.0',
-  'exec-and-forget open -a "Cursor"',
   'exec-and-forget open -a "Ghostty"',
   'exec-and-forget open -a "Arc"',
 ]
@@ -50,7 +49,7 @@ automatically-unhide-macos-hidden-apps = false
 # even when they are invisible.
 # This config version is only available since 'config-version = 2'
 # Fallback value (if you omit the key): persistent-workspaces = []
-persistent-workspaces = ["5-DBManager", "6", "7", "8-Music", "9",
+persistent-workspaces = ["5-DBManager", "6-Intellij", "7", "8-Music", "9",
                          "1-Browser", "2-Terminal", "3-Dev", "4-Chat"]
 
 # A callback that runs every time binding mode changes
@@ -165,7 +164,7 @@ on-mode-changed = []
     cmd-3 = 'workspace 3-Dev'
     cmd-4 = 'workspace 4-Chat'
     cmd-5 = 'workspace 5-DBManager'
-    cmd-6 = 'workspace 6'
+    cmd-6 = 'workspace 6-Intellij'
     cmd-7 = 'workspace 7'
     cmd-8 = 'workspace 8-Music'
     cmd-9 = 'workspace 9'
@@ -176,7 +175,7 @@ on-mode-changed = []
     cmd-shift-3 = 'move-node-to-workspace 3-Dev'
     cmd-shift-4 = 'move-node-to-workspace 4-Chat'
     cmd-shift-5 = 'move-node-to-workspace 5-DBManager'
-    cmd-shift-6 = 'move-node-to-workspace 6'
+    cmd-shift-6 = 'move-node-to-workspace 6-Intellij'
     cmd-shift-7 = 'move-node-to-workspace 7'
     cmd-shift-8 = 'move-node-to-workspace 8-Music'
     cmd-shift-9 = 'move-node-to-workspace 9'
@@ -188,7 +187,7 @@ on-mode-changed = []
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
-    alt-w = 'exec-and-forget open -a Ghostty'
+    alt-t = 'exec-and-forget open -a Ghostty'
     alt-e = 'exec-and-forget open -n -a /Applications/Cursor.app'
     alt-q = 'exec-and-forget open -n -a /Applications/Arc.app'
 
@@ -221,9 +220,9 @@ on-mode-changed = []
     "3-Dev" = 'secondary'
     "4-Chat" = 'main'
     "5-DBManager" = 'main'
-    6 = 'main'
+    "6-Intellij" = 'secondary'
     7 = 'main'
-    8-Music = 'main'
+    "8-Music" = 'main'
     9 = 'main'
 
 ######################### DEFAULT OPENING ###########################
@@ -265,6 +264,10 @@ on-mode-changed = []
 [[on-window-detected]]
     if.app-id = 'com.tinyapp.TablePlus'
     run = ['move-node-to-workspace 5-DBManager', 'layout tiling']
+
+[[on-window-detected]]
+    if.app-id = 'com.jetbrains.intellij.ce'
+    run = ['move-node-to-workspace 6-Intellij', 'layout tiling']
 
 # 8 (Music)
 [[on-window-detected]]

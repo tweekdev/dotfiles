@@ -49,49 +49,16 @@ wk.add({
 	-- LSP and Code actions
 	{ "<leader>c", group = "+code" },
 	{ "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<CR>", desc = "Code action" },
-	{ "<leader>rn", ":IncRename ", desc = "Rename" },
 	{ "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", desc = "LSP references (Trouble)" },
-	{ "<leader>cs", "<cmd>Trouble symbols toggle<CR>", desc = "Symbols (Trouble)" },
+	{ "<leader>rn", ":IncRename ", desc = "Rename" },
+	{ "<leader>dt", "<cmd>DapToggleBreakpoint<CR>", desc = "Toggle Breakpoint" },
 
 	-- Debugger
 	{ "<leader>d", group = "+debugger" },
-	{ "<leader>dt", "<cmd>DapToggleBreakpoint<CR>", desc = "Toggle Breakpoint" },
-	{ "<leader>dc", "<cmd>DapContinue<CR>", desc = "Continue" },
-	{ "<leader>dx", "<cmd>DapTerminate<CR>", desc = "Terminate" },
-	{ "<leader>do", "<cmd>DapStepOver<CR>", desc = "Step Over" },
 
+	-- Telescope
 	-- Git - utilise notre système Git unifié
 	{ "<leader>G", group = "+git" },
-	{ "<leader>Gs", "<cmd>Git<CR>", desc = "Git status" },
-	{ "<leader>Gg", "<cmd>LazyGit<CR>", desc = "LazyGit" },
-	{ "<leader>Gf", "<cmd>LazyGitFilterCurrentFile<CR>", desc = "File history" },
-	{ "<leader>Gl", "<cmd>LazyGitFilter<CR>", desc = "Git log" },
-	{ "<leader>Gb", "<cmd>Git blame<CR>", desc = "Git blame" },
-	{ "<leader>Gd", "<cmd>Gdiffsplit<CR>", desc = "Git diff split" },
-	{ "<leader>Gdo", "<cmd>DiffviewOpen<CR>", desc = "DiffView: Open" },
-	{ "<leader>Gdh", "<cmd>DiffviewFileHistory %<CR>", desc = "DiffView: File History" },
-	{
-		"<leader>Ghp",
-		function()
-			_G.git.preview_hunk()
-		end,
-		desc = "Git: Preview hunk",
-	},
-	{
-		"<leader>Ghb",
-		function()
-			_G.git.blame_line()
-		end,
-		desc = "Git: Blame line",
-	},
-	{
-		"<leader>GhB",
-		function()
-			_G.git.toggle_blame()
-		end,
-		desc = "Git: Toggle blame",
-	},
-
 	-- Git Telescope
 	{ "<leader>gts", "<cmd>Telescope git_status<CR>", desc = "Git Status" },
 	{ "<leader>gtc", "<cmd>Telescope git_commits<CR>", desc = "Git Commits" },
@@ -103,15 +70,7 @@ wk.add({
 
 	-- Trouble
 	{ "<leader>x", group = "+trouble" },
-	{ "<leader>xx", "<cmd>Trouble diagnostics toggle<CR>", desc = "Toggle" },
-	{ "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Buffer Diagnostics" },
-	{ "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<CR>", desc = "Diagnostics" },
-	{ "<leader>xq", "<cmd>Trouble qflist toggle<CR>", desc = "Quickfix" },
-	{ "<leader>xL", "<cmd>Trouble loclist toggle<CR>", desc = "Loclist" },
 
 	-- Corrections d'affichage
 	{ "<leader>r", group = "+redraw" },
-	{ "<leader>rr", "<cmd>redraw!<cr>", desc = "Force Redraw complet" },
-	{ "<leader>rf", "<cmd>mode<cr>", desc = "Rafraîchir le mode" },
-	{ "<leader>rc", "<cmd>redraw<cr>", desc = "Redraw simple" },
 })

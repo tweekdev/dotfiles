@@ -158,7 +158,16 @@ alias vim='nvim'
 alias vi='nvim'
 alias v='nvim'
 alias n='nvim'
-alias vif='nvim $(fzf)' # open file in nvim with fzf
+# que fait le -m ?
+# -m means multiple files
+# --preview="bat --style=numbers --color=always --line-range :500 {}" means preview the file with bat
+# --line-range :500 means preview the first 500 lines of the file
+# {} means the file to preview
+# fzf is a fuzzy finder
+# bat is a cat alternative
+# nvim is the editor
+# vif is a shortcut for nvim with fzf
+alias vif='nvim $(fzf -m --preview="bat --style=numbers --color=always --line-range :500 {}")' # open file in nvim with fzf
 alias sn='find . -name "*.js" -or -name "*.ts" | entr -r nvim' # open file in nvim with entr
 
 # ============================================
@@ -299,6 +308,7 @@ alias pro='cd ~/Developer/travauxlib/scripts && ./start.sh pro' # start pro proj
 alias app='cd ~/Developer/travauxlib/scripts && ./start.sh app' # start app project
 alias shared='cd ~/Developer/travauxlib/scripts && ./start.sh shared' # start shared project
 alias pdf='cd ~/Developer/travauxlib/scripts && ./start.sh pdf' # start pdf project
+alias stopall='cd ~/Developer/travauxlib/scripts && ./start.sh stop' # stop all projects
 
 # ============================================
 # Brewfile
