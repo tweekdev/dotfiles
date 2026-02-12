@@ -88,6 +88,7 @@ cask "chromium"
 cask "sf-symbols"
 cask "bruno"
 cask "cursor"
+cask "notion"
 #cask "visual-studio-code"
 #cask "zen"
 

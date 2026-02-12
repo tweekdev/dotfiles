@@ -215,11 +215,11 @@ on-mode-changed = []
     alt-shift-l = ['join-with right', 'mode main']
 
 [workspace-to-monitor-force-assignment]
-    "1-Browser" = 'main'
-    "2-Terminal" = 'secondary'
-    "3-Dev" = 'secondary'
-    "4-Chat" = 'main'
-    "5-DBManager" = 'main'
+    "1-Browser" = 'secondary'
+    "2-Terminal" = 'main'
+    "3-Dev" = 'main'
+    "4-Chat" = 'secondary'
+    "5-DBManager" = 'secondary'
     "6-Intellij" = 'secondary'
     7 = 'main'
     "8-Music" = 'main'

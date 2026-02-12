@@ -38,6 +38,8 @@ vim.keymap.set("n", "sl", "<C-w>l", { desc = "Move to right window" })
 --	_G.neotree.toggle_cwd()
 --end, { desc = "Explorer NeoTree (CWD)" })
 
+-- Theme: use Snack <leader>uC (Snacks.picker.colorschemes()); config.theme persists to lazy.lua on change.
+
 -- Which-key configuration for group labels and advanced mappings
 wk.add({
 	-- Hidden groups

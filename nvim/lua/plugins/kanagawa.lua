@@ -1,9 +1,10 @@
+-- Options ici ; le colorscheme est appliqué par config.theme ou Snack <leader>uC.
 return {
 	"rebelot/kanagawa.nvim",
-	lazy = false, -- make sure we load this during startup if it is your main colorscheme
-	priority = 1000, -- make sure to load this before all the other start plugins
+	name = "kanagawa.nvim",
+	lazy = true,
+	priority = 50,
 	config = function()
-		-- load the colorscheme here
 		require("kanagawa").setup({
 			compile = true, -- enable compiling the colorscheme
 			undercurl = true, -- enable undercurls
@@ -28,8 +29,6 @@ return {
 				light = "lotus",
 			},
 		})
-
-		vim.cmd([[colorscheme kanagawa]])
 	end,
 	build = function()
 		vim.cmd("KanagawaCompile")

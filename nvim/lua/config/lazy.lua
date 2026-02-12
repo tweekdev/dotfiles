@@ -29,12 +29,16 @@ require("lazy").setup({
     -- import your plugins
     { import = "plugins" },
   },
-  -- Configure any other settings here. See the documentation for more details.
-  -- colorscheme that will be used when installing plugins.
-  install = { colorscheme = { "kanagawa" } },
+  -- colorscheme when installing plugins (updated by <leader>uC together with config/theme_default.lua).
+  install = { colorscheme = { "rose-pine-moon" } },
   -- automatically check for plugin updates
   checker = { enabled = true },
 })
 
 
 require("config.keymaps")
+
+-- Apply saved default theme; persist when changed (e.g. Snack <leader>uC)
+local theme = require("config.theme")
+theme.apply_default()
+theme.setup_persist_on_change()
