@@ -215,15 +215,15 @@ on-mode-changed = []
     alt-shift-l = ['join-with right', 'mode main']
 
 [workspace-to-monitor-force-assignment]
-    "1-Browser" = 'secondary'
-    "2-Terminal" = 'main'
-    "3-Dev" = 'main'
-    "4-Chat" = 'secondary'
+    "1-Browser" = 'main'
+    "2-Terminal" = 'secondary'
+    "3-Dev" = 'secondary'
+    "4-Chat" = 'main'
     "5-DBManager" = 'secondary'
     "6-Intellij" = 'secondary'
     7 = 'main'
     "8-Music" = 'main'
-    9 = 'main'
+    9 = 'secondary'
 
 ######################### DEFAULT OPENING ###########################
 # App IDs from: aerospace list-apps
@@ -275,8 +275,13 @@ on-mode-changed = []
     run = 'move-node-to-workspace 8-Music'
 
 [[on-window-detected]]
+    if.app-id = 'com.apple.iWork.Numbers'
+    run = ['move-node-to-workspace 9', 'layout tiling']
+
+[[on-window-detected]]
     if.app-id = 'com.apple.SystemPreferences'
     run = 'layout floating'
+
 
 [[on-window-detected]]
     if.app-id = 'com.apple.finder'
