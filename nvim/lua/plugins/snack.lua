@@ -13,7 +13,35 @@ return {
 			enabled = true,
 			timeout = 3000,
 		},
-		picker = { enabled = true, hidden = true, ignored = false },
+		picker = {
+			enabled = true,
+			hidden = true,
+			ignored = false,
+			exclude = {
+				".semanticdb",
+				"**/semanticdb/**",
+				"**/.semanticdb/**",
+				"**/target/scala-*/**",
+				"**/.metals/**",
+				"**/.bloop/**",
+				"**/node_modules/**",
+			},
+			sources = {
+				explorer = {
+					hidden = true,
+					ignored = true,
+					exclude = {
+						".semanticdb",
+						"**/semanticdb/**",
+						"**/.semanticdb/**",
+						"**/target/scala-*/**",
+						"**/.metals/**",
+						"**/.bloop/**",
+						"**/node_modules/**",
+					},
+				},
+			},
+		},
 		quickfile = { enabled = true },
 		scope = { enabled = true },
 		scroll = { enabled = true },
@@ -30,9 +58,9 @@ return {
 		{
 			"<leader><space>",
 			function()
-				Snacks.picker.smart()
+				Snacks.picker.smart({ cwd = Snacks.git.get_root() })
 			end,
-			desc = "Smart Find Files",
+			desc = "Smart Find Files (project root)",
 		},
 		{
 			"<leader>,",
@@ -44,9 +72,9 @@ return {
 		{
 			"<leader>/",
 			function()
-				Snacks.picker.grep()
+				Snacks.picker.grep({ cwd = Snacks.git.get_root() })
 			end,
-			desc = "Grep",
+			desc = "Grep (project root)",
 		},
 		{
 			"<leader>:",
@@ -65,9 +93,9 @@ return {
 		{
 			"<leader>e",
 			function()
-				Snacks.explorer()
+				Snacks.explorer({ cwd = Snacks.git.get_root() })
 			end,
-			desc = "File Explorer",
+			desc = "File Explorer (project root)",
 		},
 		-- find
 		{
@@ -87,9 +115,9 @@ return {
 		{
 			"<leader>ff",
 			function()
-				Snacks.picker.files()
+				Snacks.picker.files({ cwd = Snacks.git.get_root() })
 			end,
-			desc = "Find Files",
+			desc = "Find Files (project root)",
 		},
 		{
 			"<leader>fg",
@@ -209,16 +237,16 @@ return {
 		{
 			"<leader>sg",
 			function()
-				Snacks.picker.grep()
+				Snacks.picker.grep({ cwd = Snacks.git.get_root() })
 			end,
-			desc = "Grep",
+			desc = "Grep (project root)",
 		},
 		{
 			"<leader>sw",
 			function()
-				Snacks.picker.grep_word()
+				Snacks.picker.grep_word({ cwd = Snacks.git.get_root() })
 			end,
-			desc = "Visual selection or word",
+			desc = "Visual selection or word (project root)",
 			mode = { "n", "x" },
 		},
 		-- search
