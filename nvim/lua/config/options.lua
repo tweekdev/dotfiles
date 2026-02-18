@@ -29,6 +29,9 @@ vim.opt.relativenumber = true
 -- Show line under cursor
 vim.opt.cursorline = true
 
+-- Sync clipboard with system
+vim.opt.clipboard = "unnamedplus"
+
 -- Store undos between sessions
 vim.opt.undofile = true
 
