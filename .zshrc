@@ -166,6 +166,8 @@ alias n='nvim'
 # fzf is a fuzzy finder
 # bat is a cat alternative
 # nvim is the editor
+# fzf uses fd (respects .gitignore) with explicit excludes
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git --exclude node_modules --exclude .semanticdb --exclude .metals --exclude .bloop --exclude "target/scala-*"'
 # vif is a shortcut for nvim with fzf
 alias vif='nvim $(fzf -m --preview="bat --style=numbers --color=always --line-range :500 {}")' # open file in nvim with fzf
 alias sn='find . -name "*.js" -or -name "*.ts" | entr -r nvim' # open file in nvim with entr
