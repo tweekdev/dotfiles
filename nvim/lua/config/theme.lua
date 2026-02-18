@@ -22,11 +22,6 @@ local function kanagawa_apply()
 	vim.cmd.colorscheme("kanagawa")
 end
 
-local function anysphere_apply()
-	require("lazy").load({ plugins = { "anysphere.nvim" } })
-	vim.cmd.colorscheme("anysphere")
-end
-
 -- Rosé Pine Main
 local function rose_pine_main_apply()
 	require("lazy").load({ plugins = { "rose-pine" } })
@@ -86,8 +81,6 @@ M.THEMES = {
 	{ id = "kanagawa-wave", label = "Kanagawa (Wave)", apply = kanagawa_wave_apply },
 	{ id = "kanagawa-dragon", label = "Kanagawa (Dragon)", apply = kanagawa_dragon_apply },
 	{ id = "kanagawa-lotus", label = "Kanagawa (Lotus)", apply = kanagawa_lotus_apply },
-	-- Autres
-	{ id = "anysphere", label = "Anysphere", apply = anysphere_apply },
 }
 
 ---Apply a theme by id (loads plugin if needed).

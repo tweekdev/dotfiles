@@ -28,7 +28,7 @@ Personal Neovim configuration using lazy.nvim as the plugin manager. All config 
 - **Scala** (`lua/plugins/scala.lua`): nvim-metals (separate from mason LSP). Requires Coursier. Includes DAP integration.
 - **Completion** (`lua/plugins/blink-cmp.lua`): blink.cmp with Copilot source via blink-copilot.
 - **Formatting** (`lua/plugins/conform.lua`): conform.nvim - prettier/prettierd (JS/TS), stylua (Lua), isort+black (Python), rustfmt (Rust), scalafmt (Scala).
-- **Theme** (`lua/config/theme.lua`): Custom theme manager with persistence. Supports rose-pine, kanagawa, anysphere, cursor-dark, vscode-modern. Picker via `<leader>uC`.
+- **Theme** (`lua/config/theme.lua`): Custom theme manager with persistence. Supports rose-pine, kanagawa, cursor-dark, vscode-modern. Picker via `<leader>uC`.
 
 ## Conventions
 

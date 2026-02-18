@@ -58,9 +58,9 @@ return {
 		{
 			"<leader><space>",
 			function()
-				Snacks.picker.smart({ cwd = Snacks.git.get_root() })
+				Snacks.picker.recent()
 			end,
-			desc = "Smart Find Files (project root)",
+			desc = "Recent Files",
 		},
 		{
 			"<leader>,",
