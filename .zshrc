@@ -1,4 +1,9 @@
 # ============================================
+# Secrets (local, not tracked in git)
+# ============================================
+[[ -f ~/.secrets ]] && source ~/.secrets
+
+# ============================================
 # Homebrew (must be FIRST for Apple Silicon)
 # ============================================
 if [[ -f "/opt/homebrew/bin/brew" ]]; then

@@ -49,8 +49,8 @@ automatically-unhide-macos-hidden-apps = false
 # even when they are invisible.
 # This config version is only available since 'config-version = 2'
 # Fallback value (if you omit the key): persistent-workspaces = []
-persistent-workspaces = ["5-DBManager", "6-Intellij", "7", "8-Music", "9",
-                         "1-Browser", "2-Terminal", "3-Dev", "4-Chat"]
+persistent-workspaces = ["5-DBManager", "6-Intellij", "7-Dev", "8-Music", "9-Other",
+                         "1-Browser", "2-Terminal", "3-Slack", "4-Notion"]
 
 # A callback that runs every time binding mode changes
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -116,7 +116,7 @@ on-mode-changed = []
     # '''
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#layout
-    # Split layout: tiles (alt-slash) or accordion (alt-comma) — useful for 4-Chat and others
+    # Split layout: tiles (alt-slash) or accordion (alt-comma) — useful for 4-Notion and others
     alt-slash = 'layout tiles horizontal vertical'
     alt-comma = 'layout accordion horizontal vertical'
 
@@ -161,24 +161,24 @@ on-mode-changed = []
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
     cmd-1 = 'workspace 1-Browser'
     cmd-2 = 'workspace 2-Terminal'
-    cmd-3 = 'workspace 3-Dev'
-    cmd-4 = 'workspace 4-Chat'
+    cmd-3 = 'workspace 3-Slack'
+    cmd-4 = 'workspace 4-Notion'
     cmd-5 = 'workspace 5-DBManager'
     cmd-6 = 'workspace 6-Intellij'
-    cmd-7 = 'workspace 7'
+    cmd-7 = 'workspace 7-Dev'
     cmd-8 = 'workspace 8-Music'
-    cmd-9 = 'workspace 9'
+    cmd-9 = 'workspace 9-Other'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
     cmd-shift-1 = 'move-node-to-workspace 1-Browser'
     cmd-shift-2 = 'move-node-to-workspace 2-Terminal'
-    cmd-shift-3 = 'move-node-to-workspace 3-Dev'
-    cmd-shift-4 = 'move-node-to-workspace 4-Chat'
+    cmd-shift-3 = 'move-node-to-workspace 3-Slack'
+    cmd-shift-4 = 'move-node-to-workspace 4-Notion'
     cmd-shift-5 = 'move-node-to-workspace 5-DBManager'
     cmd-shift-6 = 'move-node-to-workspace 6-Intellij'
-    cmd-shift-7 = 'move-node-to-workspace 7'
+    cmd-shift-7 = 'move-node-to-workspace 7-Dev'
     cmd-shift-8 = 'move-node-to-workspace 8-Music'
-    cmd-shift-9 = 'move-node-to-workspace 9'
+    cmd-shift-9 = 'move-node-to-workspace 9-Other'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth
     alt-tab = 'workspace-back-and-forth'
@@ -217,13 +217,13 @@ on-mode-changed = []
 [workspace-to-monitor-force-assignment]
     "1-Browser" = 'main'
     "2-Terminal" = 'secondary'
-    "3-Dev" = 'secondary'
-    "4-Chat" = 'main'
+    "3-Slack" = 'main'
+    "4-Notion" = 'secondary'
     "5-DBManager" = 'secondary'
     "6-Intellij" = 'secondary'
-    7 = 'main'
+    "7-Dev" = 'secondary'
     "8-Music" = 'main'
-    9 = 'secondary'
+    "9-Other" = 'main'
 
 ######################### DEFAULT OPENING ###########################
 # App IDs from: aerospace list-apps
@@ -247,19 +247,24 @@ on-mode-changed = []
     if.app-id = 'com.mitchellh.ghostty'
     run = 'move-node-to-workspace 2-Terminal --focus-follows-window'
 
-# 3-Dev
-[[on-window-detected]]
-    if.app-id = 'com.todesktop.230313mzl4w4u92'
-    run = 'move-node-to-workspace 3-Dev --focus-follows-window'
-
-# 4-Chat
+# 3-Slack
 [[on-window-detected]]
     if.app-id = 'com.tinyspeck.slackmacgap'
-    run = ['move-node-to-workspace 4-Chat', 'layout tiling']
+    run = 'move-node-to-workspace 3-Slack --focus-follows-window'
+
+# 4-Notion
+[[on-window-detected]]
+    if.app-id = 'notion.id'
+    run = ['move-node-to-workspace 4-Notion', 'layout tiling']
+
+# 4-Notion (iCal)
+[[on-window-detected]]
+    if.app-id = 'com.cron.electron'
+    run = ['move-node-to-workspace 4-Notion', 'layout tiling']
 
 [[on-window-detected]]
     if.app-id = 'com.apple.iCal'
-    run = ['move-node-to-workspace 4-Chat', 'layout tiling']
+    run = ['move-node-to-workspace 4-Notion', 'layout tiling']
 
 [[on-window-detected]]
     if.app-id = 'com.tinyapp.TablePlus'
@@ -269,14 +274,23 @@ on-mode-changed = []
     if.app-id = 'com.jetbrains.intellij.ce'
     run = ['move-node-to-workspace 6-Intellij', 'layout tiling']
 
+[[on-window-detected]]
+    if.app-id = 'com.todesktop.230313mzl4w4u92'
+    run = ['move-node-to-workspace 7-Dev', 'layout tiling']
+
 # 8 (Music)
 [[on-window-detected]]
     if.app-id = 'com.apple.Music'
     run = 'move-node-to-workspace 8-Music'
 
+# 9-Other
 [[on-window-detected]]
-    if.app-id = 'com.apple.iWork.Numbers'
-    run = ['move-node-to-workspace 9', 'layout tiling']
+    if.app-id = 'com.apple.Notes'
+    run = ['move-node-to-workspace 9-Other', 'layout tiling']
+
+[[on-window-detected]]
+    if.app-id = 'com.obsproject.obs-studio'
+    run = ['move-node-to-workspace 9-Other', 'layout tiling']
 
 [[on-window-detected]]
     if.app-id = 'com.apple.SystemPreferences'
