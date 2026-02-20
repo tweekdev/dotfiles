@@ -8,7 +8,9 @@ return {
             scala = { "scalafmt", lsp_format = "never" },
             sbt = { "scalafmt", lsp_format = "never" },
             javascript = { "prettierd", "prettier", stop_after_first = true },
+            javascriptreact = { "prettierd", "prettier", stop_after_first = true },
             typescript = { "prettierd", "prettier", stop_after_first = true },
+            typescriptreact = { "prettierd", "prettier", stop_after_first = true },
         },
         -- scalafmt : via coursier (cs launch) ; cwd = répertoire du fichier pour trouver api/.scalafmt.conf
         formatters = {
@@ -30,6 +32,22 @@ return {
             local ft = vim.bo[bufnr].ft
             if ft == "scala" or ft == "sbt" then
                 return nil
+            end
+            -- ESLint fix-all synchrone (organize imports + auto-fix) pour JS/TS
+            local js_ts = { javascript = true, javascriptreact = true, typescript = true, typescriptreact = true }
+            if js_ts[ft] then
+                local clients = vim.lsp.get_clients({ bufnr = bufnr, name = "eslint" })
+                if #clients > 0 then
+                    vim.lsp.buf_request_sync(bufnr, "workspace/executeCommand", {
+                        command = "eslint.applyAllFixes",
+                        arguments = {
+                            {
+                                uri = vim.uri_from_bufnr(bufnr),
+                                version = vim.lsp.util.buf_versions[bufnr],
+                            },
+                        },
+                    }, 3000)
+                end
             end
             return {
                 timeout_ms = 10000,
